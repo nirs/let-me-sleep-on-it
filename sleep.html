@@ -1,0 +1,670 @@
+<!doctype html>
+<html lang="en">
+
+	<head>
+		<meta charset="utf-8">
+
+		<title>Let me sleep on it</title>
+
+		<meta name="apple-mobile-web-app-capable" content="yes">
+		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+		<link rel="stylesheet" href="reveal/css/reveal.css">
+		<link rel="stylesheet" href="reveal/css/theme/white.css" id="theme">
+
+		<!-- Theme used for syntax highlighting of code -->
+		<link rel="stylesheet" href="reveal/lib/css/zenburn.css">
+
+		<!-- Printing and PDF exports -->
+		<script>
+			var link = document.createElement( 'link' );
+			link.rel = 'stylesheet';
+			link.type = 'text/css';
+			link.href = window.location.search.match( /print-pdf/gi ) ? 'reveal/css/print/pdf.css' : 'reveal/css/print/paper.css';
+			document.getElementsByTagName( 'head' )[0].appendChild( link );
+		</script>
+
+		<!--[if lt IE 9]>
+		<script src="lib/js/html5shiv.js"></script>
+		<![endif]-->
+	</head>
+
+	<body>
+
+		<div class="reveal">
+
+			<!-- Any section element inside of this container is displayed as a slide -->
+			<div class="slides">
+
+				<section>
+					<h1>Let me sleep on it</h1>
+					<p>Improving concurrency in unexpected ways</p>
+					<p style="font-size: 70%">
+						<a href="https://github.com/nirs">Nir Soffer</a> <a href="mailto:nsoffer@redhat.com">&lt;nsoffer@redhat.com&gt;</a>
+            <br>
+            <a href="http://il.pycon.org/2017">PyCon Israel 2017</a>
+					</p>
+				</section>
+
+				<section>
+          <pre style="width: 100%; font-size: 100%"><code class="hljs nohighlight" data-trim>
+$ whoami
+Taming Vdsm beast since 2013
+Tinkering with Python since 2003
+Free software enthusiast
+Father of two
+          </code></pre>
+				</section>
+
+				<section>
+          <h2>Python threads suck</h2>
+          <p>Everyone knows that Python threads are useless</p>
+				</section>
+
+				<section>
+          <h2>The GIL</h2>
+          <p>Only one thread can run Python code at the same time</p>
+				</section>
+
+				<section>
+          <h2>The GIL</h2>
+          <pre style="width: 100%; font-size: 100%"><code data-trim>
+Py_BEGIN_ALLOW_THREADS
+n = read(fd, buf, count);
+Py_END_ALLOW_THREADS
+          </code></pre>
+				</section>
+
+				<section>
+          <h2>syscalls can block</h2>
+          <p>read(2) can block for minutes</p>
+          <p>Non blocking io does not help</p>
+				</section>
+
+				<section>
+          <h2>Python thrads are useful</h2>
+          <p>You can do I/O or wait for other programs concurrently</p>
+				</section>
+
+				<section>
+          <h2>Sequential code is easy</h2>
+          <p>Complex flows are easy and clear when you can write sequential
+          code </p>
+				</section>
+
+				<section>
+          <h2>Error handling is easy</h2>
+          <pre style="width: 100%; font-size: 100%"><code class="Python" data-trim>
+try:
+    complex_folow()
+except:
+    handle_it()
+finally:
+    cleanup()
+          </code></pre>
+				</section>
+
+				<section>
+          <h2>Context managers are great</h2>
+          <pre style="font-size: 100%"><code class="Python" data-trim>
+with cleanup():
+    complex_flow()
+          </code></pre>
+				</section>
+
+				<section>
+          <h2>Genrators are awesome</h2>
+          <pre style="font-size: 100%"><code class="Python" data-trim>
+with line in file:
+    handle(line)
+          </code></pre>
+				</section>
+
+				<section>
+          <h2>No callback hell</h2>
+          <ul style="list-style: none; margin: 0; text-align: center">
+            <li>Or promise hell</li>
+            <li>Or yield from hell</li>
+            <li>Or async await hell</li>
+          </ul>
+				</section>
+
+				<section>
+          <h2>Vdsm is using lot of threads</h2>
+				</section>
+
+				<section>
+          <h2>What is Vdsm?</h2>
+          <p>Vdsm manage virtual machines on a hypervisor</p>
+				</section>
+
+				<section>
+          <h2>Virtual machines<br>need storage</h2>
+          <p>Vdsm provide storage for virtual machines, typically shared storage (FC, iSCSI, NFS, GlusterFS, Ceph)</p>
+				</section>
+
+				<section>
+          <h2>Shared storage is fast</h2>
+          <p>Seen 750MiB/s writes using direct I/O to SSD disk array</p>
+				</section>
+
+				<section>
+          <h2>Shared storage is slow</h2>
+          <pre style="width: 100%"><code class="Python" data-trim>
+$ ps -p 32729 -o stat -o cmd
+STAT CMD
+D+   dd if=/dev/zero of=mnt/test bs=8M count=1280 oflag=direct
+          </code></pre>
+				</section>
+
+				<section>
+          <h2>Vdsm is monitoring storage</h2>
+          <p>Every storage domain has a dedicated thread - we can have 50 of these</p>
+				</section>
+
+				<section>
+          <h2>Monitor threads<br>are isolated</h2>
+          <p>If one thread get stuck on unresponsive storage, other threads are not affected</p>
+				</section>
+
+				<section>
+          <h2>Monitor threads<br>run LVM commands</h2>
+          <ul style="list-style: none; margin: 0; text-align: center">
+            <li>Vdsm is managing block storage using LVM</li>
+            <li>Create logical volumes for VM disks and snapshots</li>
+          </ul>
+				</section>
+
+				<section>
+          <h2>Accessing LVM<br>metadata is slow</h2>
+          <p>Vdsm caches LVM metadata</p>
+				</section>
+
+				<section>
+          <blockquote>
+            &ldquo;There are only two hard things in Computer Science: cache invalidation and naming things.&rdquo;
+            <br>
+            -- Phil Karlton
+          </blockquote>
+				</section>
+
+				<section>
+          <h2>Monitor threads<br>invalidate LVM cache</h2>
+          <p>Monitor thread invalidate the cache and run LVM commands to reload the cache</p>
+				</section>
+
+				<section>
+          <h2>LVM cache uses fancy locking</h2>
+          <ul style="list-style: none; margin: 0; text-align: center">
+            <li>Multiple threads can invalidate the cache</li>
+            <li>Multiple threads can reload the cache</li>
+            <li>Invalidate and reload cannot run in the same time</li>
+          </ul>
+				</section>
+
+				<section>
+          <h2>LVM Cache</h2>
+          <pre style="width: 100%"><code class="Python" data-trim>
+
+class LVMCache(object):
+    ...
+    def _invalidate_lvs(self, vg_name, lv_names):
+        with self._opmutex.locked(LVM_OP_INVALIDATE):
+            for lv_name in lv_names:
+                self._lvs[(vg_name, lv_name)] = Stub(lv_name)
+
+    def _reload_lvs(self, vg_name, lv_names):
+        with self._opmutex.locked(LVM_OP_RELOAD):
+            lvm_output = self._run_lvs(vg_name, lv_names)
+            for lv in self._parse_lvs(lvm_output):
+                self._lvs[(vg_name, lv_name)] = lv
+          </code></pre>
+        <p>
+          <small>(Simplified)</small>
+        </p>
+				</section>
+
+				<section>
+          <h2>Operation Mutex [1/3]</h2>
+          <pre style="width: 100%"><code class="Python" data-trim>
+class OperationMutex(object):
+
+    def __init__(self):
+        self._cond = threading.Condition(threading.Lock())
+        self._operation = None
+        self._holders = 0
+
+    @contextmanager
+    def locked(self, operation):
+        self._acquire(operation)
+        try:
+            yield self
+        finally:
+            self._release()
+          </code></pre>
+				</section>
+
+				<section>
+          <h2>Operation Mutex [2/3]</h2>
+          <pre style="width: 100%"><code class="Python" data-trim>
+    def _acquire(self, operation):
+        with self._cond:
+            while self._operation not in (operation, None):
+                log.debug("Operation %r is holding the "
+                          "mutex, waiting...", self._operation)
+                self._cond.wait()
+            if self._operation == operation:
+                log.debug("Operation %r entered the mutex",
+                          operation)
+            else:
+                log.debug("Operation %r acquired the mutex",
+                          operation)
+                self._operation = operation
+            self._holders += 1
+          </code></pre>
+				</section>
+
+				<section>
+          <h2>Operation Mutex [3/3]</h2>
+          <pre style="width: 100%"><code class="Python" data-trim>
+    def _release(self):
+        with self._cond:
+            self._holders -= 1
+            if self._holders == 0:
+                log.debug("Operation %r released the mutex",
+                          self._operation)
+                self._operation = None
+                self._cond.notify_all()
+            else:
+                log.debug("Operation %r existed the mutex",
+                          self._operation)
+          </code></pre>
+				</section>
+
+				<section>
+          <h2>Operation Mutex in practice</h2>
+          <pre style="font-size: 0.50em"><code class="hljs nohighlight" data-trim>
+(_invalidate_lvs) 'lvm reload' is holding the mutex, waiting...
+(_reload_vgs) 'lvm reload' is holding the mutex, waiting...
+(_invalidate_vgs) 'lvm reload' is holding the mutex, waiting...
+(_invalidate_vgs) 'lvm reload' is holding the mutex, waiting...
+(_reload_vgs) 'lvm reload' is holding the mutex, waiting...
+(_invalidate_vgs) 'lvm reload' is holding the mutex, waiting...
+(_reload_vgs) 'lvm reload' is holding the mutex, waiting...
+(_invalidate_vgs) 'lvm reload' is holding the mutex, waiting...
+(_invalidate_vgs) 'lvm reload' is holding the mutex, waiting...
+(_invalidate_vgs) 'lvm reload' is holding the mutex, waiting...
+(_invalidate_vgs) 'lvm reload' is holding the mutex, waiting...
+(_invalidate_vgs) 'lvm reload' is holding the mutex, waiting...
+(_invalidate_vgs) 'lvm reload' is holding the mutex, waiting...
+(_invalidate_vgs) 'lvm reload' is holding the mutex, waiting...
+(_invalidate_vgs) 'lvm reload' is holding the mutex, waiting...
+(_invalidate_vgs) 'lvm reload' is holding the mutex, waiting...
+(_invalidate_vgs) 'lvm reload' is holding the mutex, waiting...
+(_invalidate_vgs) 'lvm reload' is holding the mutex, waiting...
+(_invalidate_vgs) 'lvm reload' is holding the mutex, waiting...
+(_invalidate_vgs) 'lvm reload' is holding the mutex, waiting...
+(_invalidate_vgs) 'lvm reload' is holding the mutex, waiting...
+(_invalidate_vgs) 'lvm reload' is holding the mutex, waiting...
+(_invalidate_vgs) 'lvm reload' is holding the mutex, waiting...
+(_invalidate_vgs) 'lvm reload' is holding the mutex, waiting...
+(_invalidate_vgs) 'lvm reload' is holding the mutex, waiting...
+(_invalidate_vgs) 'lvm reload' is holding the mutex, waiting...
+(_invalidate_vgs) 'lvm reload' is holding the mutex, waiting...
+(_reload_lvs) 'lvm reload' is holding the mutex, waiting...
+(_invalidate_vgs) 'lvm reload' is holding the mutex, waiting...
+(_invalidate_vgs) 'lvm reload' is holding the mutex, waiting...
+          </code></pre>
+          <p>
+          <small>(Simplified)</small>
+          </p>
+				</section>
+
+				<section>
+          <h2>Operation Mutex<br>is not useful</h2>
+          <p>Only one monitor thread enter the operation mutex</p>
+				</section>
+
+				<section>
+          <h2>Operation mutex is harmful</h2>
+          <ul style="list-style: none; margin: 0; text-align: center">
+            <li>Lot of storage domains...</li>
+            <li>Storage is overloaded...</li>
+            <li>LVM commands become slow...</li>
+            <li>Monitor threads waiting...</li>
+            <li>Monitoring timeouts...</li>
+            <li>Hypervisor goes down</li>
+          </ul>
+				</section>
+
+				<section>
+          <h2>Why Operation Mutex tests are passing?</h2>
+          <ul style="list-style: none; margin: 0; text-align: center">
+            <li>There are no OperationMutex tests</li>
+            <li>Original author had correctness proofs</li>
+          </ul>
+				</section>
+
+				<section>
+          <blockquote>
+            &ldquo;Code without tests is broken.&rdquo;
+            <br>
+            -- Nir Soffer
+          </blockquote>
+				</section>
+
+				<section>
+          <h2>Adding tests</h2>
+          <p>Lets start with the easy case, allowing multiple threads to perform the same operation</p>
+				</section>
+
+				<section>
+          <h2>Testing same operation</h2>
+          <pre style="font-size: 0.50em"><code class="Python" data-trim>
+def test_same_operation():
+    m = opmutex.OperationMutex()
+
+    def worker(n):
+        with m.locked("operation"):
+            time.sleep(1.0)
+
+    elapsed = run_threads(worker, 50)
+
+    assert elapsed < 2.0
+          </code></pre>
+				</section>
+
+
+				<section>
+          <h2>We need some help</h2>
+          <pre style="font-size: 0.50em"><code class="Python" data-trim>
+def run_threads(func, count):
+    threads = []
+    start = time.time()
+    try:
+        for i in range(count):
+            t = threading.Thread(target=func,
+                                 args=(i,),
+                                 name="worker-%02d" % i)
+            t.daemon = True
+            t.start()
+            threads.append(t)
+    finally:
+        for t in threads:
+            t.join()
+    return time.time() - start
+          </code></pre>
+				</section>
+
+
+				<section>
+          <h2>Refresh LVM cache flow</h2>
+          <ol>
+            <li>Invalidate VG cache</li>
+            <li>Reload VG cache</li>
+          </ol>
+				</section>
+
+
+				<section>
+          <h2>Time matters</h2>
+          <ol>
+            <li>Invalidate takes no time - updates a dict</li>
+            <li>Reload takes several seconds - goes to storage</li>
+          </ol>
+				</section>
+
+
+				<section>
+          <h2>Testing refresh flow</h2>
+          <pre style="width: 100%"><code class="Python" data-trim>
+def test_refresh_flow(run):
+    count = 50
+    m = opmutex.OperationMutex()
+    cache = ["old"] * count
+
+    def worker(n):
+        with m.locked("invalidate"):
+            cache[n] = "invalid"
+        with m.locked("reload"):
+            time.sleep(1.0)
+            cache[n] = "new"
+
+    elapsed = run_threads(worker, count)
+    assert elapsed < 2.0
+    assert cache == ["new"] * count
+          </code></pre>
+				</section>
+
+
+				<section>
+          <h2>Test fails randomly</h2>
+          <p>Testing threading issues is tricky</p>
+				</section>
+
+
+				<section>
+          <h2>Making it fail</h2>
+          <pre style="width: 100%"><code class="Python" data-trim>
+@pytest.mark.parametrize("run", range(10))
+def test_refresh_flow(run):
+    count = 50
+    m = opmutex.OperationMutex()
+    cache = ["old"] * count
+
+    def worker(n):
+        with m.locked("invalidate"):
+            cache[n] = "invalid"
+        with m.locked("reload"):
+            time.sleep(1.0)
+            cache[n] = "new"
+
+    elapsed = run_threads(worker, count)
+    assert elapsed < 2.0
+    assert cache == ["new"] * count
+          </code></pre>
+				</section>
+
+
+				<section>
+          <h2>Failing tests are good</h2>
+          <pre style="font-size: 0.50em"><code data-trim>
+opmutex_test.py::test_same_operation PASSED
+opmutex_test.py::test_refresh_flow[0] FAILED
+opmutex_test.py::test_refresh_flow[1] PASSED
+opmutex_test.py::test_refresh_flow[2] PASSED
+opmutex_test.py::test_refresh_flow[3] PASSED
+opmutex_test.py::test_refresh_flow[4] PASSED
+opmutex_test.py::test_refresh_flow[5] FAILED
+opmutex_test.py::test_refresh_flow[6] PASSED
+opmutex_test.py::test_refresh_flow[7] FAILED
+opmutex_test.py::test_refresh_flow[8] PASSED
+opmutex_test.py::test_refresh_flow[9] FAILED
+          </code></pre>
+				</section>
+
+
+				<section>
+          <h2>Test failure log</h2>
+          <pre style="font-size: 0.50em; witdh: 80%"><code data-trim>
+worker-00: Operation 'invalidate' acquired the mutex
+worker-00: Operation 'invalidate' released the mutex
+worker-00: Operation 'reload' acquired the mutex
+worker-01: Operation 'reload' is holding the mutex, waiting...
+worker-02: Operation 'reload' is holding the mutex, waiting...
+worker-03: Operation 'reload' is holding the mutex, waiting...
+worker-04: Operation 'reload' is holding the mutex, waiting...
+worker-05: Operation 'reload' is holding the mutex, waiting...
+worker-06: Operation 'reload' is holding the mutex, waiting...
+worker-07: Operation 'reload' is holding the mutex, waiting...
+worker-08: Operation 'reload' is holding the mutex, waiting...
+worker-09: Operation 'reload' is holding the mutex, waiting...
+worker-10: Operation 'reload' is holding the mutex, waiting...
+          </code></pre>
+				</section>
+
+
+				<section>
+          <h2>Why it fails?</h2>
+          <ol>
+            <li>Thread 0 acquire the GIL</li>
+            <li>Thread 0 acquire the operation mutex</li>
+            <li>Other thread could acquire the operation mutex, but thread 0 is holding the GIL</li>
+            <li>Thread 0 release the operation mutex</li>
+            <li>Thread 0 acquire the operation mutex again</li>
+            <li>Thread 0 release the GIL during sleep</li>
+            <li>Other thread cannot acquire the operation mutex now</li>
+          </ol>
+				</section>
+
+
+				<section>
+          <h2>How it should work</h2>
+          <ol>
+            <li>All threads enter the operation mutex for "invalidate" operation</li>
+            <li>All threads exit the operation mutex</li>
+            <li>All threads enter the operation mutex for "reload" operation</li>
+            <li>All threads exit the operation mutex</li>
+          </ol>
+				</section>
+
+
+				<section>
+          <h2>Can we fix it?</h2>
+          <p>Need to sleep on it</p>
+				</section>
+
+
+				<section>
+          <h2>Threads are not polite</h2>
+          <p>When you enter a building, you hold the door so the next person can enter</p>
+				</section>
+
+
+				<section>
+          <h2>How can we make threads more polite?</h2>
+				</section>
+
+
+				<section>
+          <h2>Making threads polite</h2>
+          <p>When a thread enter the operation mutex, take a little nap, letting other threads in</p>
+				</section>
+
+
+				<section>
+          <h2>Take a little nap</h2>
+          <pre style="width: 100%"><code class="Python" data-trim>
+    @contextmanager
+    def locked(self, operation):
+        self._acquire(operation)
+        try:
+            # Give other threads chance to get in.
+            time.sleep(0.005)
+            yield self
+        finally:
+            self._release()
+          </code></pre>
+				</section>
+
+
+				<section>
+          <h2>Fixed test log</h2>
+          <pre style="font-size: 0.50em; width: 100%"><code data-trim>
+worker-00: Operation 'invalidate' acquired the mutex
+worker-01: Operation 'invalidate' entered the mutex
+worker-02: Operation 'invalidate' entered the mutex
+worker-03: Operation 'invalidate' entered the mutex
+worker-04: Operation 'invalidate' entered the mutex
+worker-05: Operation 'invalidate' entered the mutex
+worker-06: Operation 'invalidate' entered the mutex
+worker-00: Operation 'invalidate' existed the mutex
+worker-07: Operation 'invalidate' entered the mutex
+worker-01: Operation 'invalidate' existed the mutex
+worker-02: Operation 'invalidate' existed the mutex
+worker-00: Operation 'invalidate' is holding the mutex, waiting...
+...
+          </code></pre>
+				</section>
+
+
+				<section>
+          <h2>Fix Availbe in ovirt-3.6</h2>
+				</section>
+
+
+				<section>
+          <h2>Are we done?</h2>
+          <p>Need to sleep on it more...</p>
+				</section>
+
+
+				<section>
+          <h2>Why do we need the operation mutex?</h2>
+				</section>
+
+
+				<section>
+          <h2>We don't</h2>
+          <p>OperationMutex was removed in ovirt-4.0</p>
+				</section>
+
+
+				<section>
+          <blockquote>
+            &ldquo;The Best Code is No Code At All.&rdquo;
+            <br>
+            -- Unknown
+          </blockquote>
+				</section>
+
+
+				<section>
+          <h2>Thank you!</h2>
+          <p>Questions?</p>
+				</section>
+
+
+				<section>
+          <h2>Patches are welcome</h2>
+          <ul style="list-style: none; margin: 0; text-align: center">
+            <li><a href="https://github.com/ovirt/">https://github.com/ovirt/</a></li>
+          </ul>
+				</section>
+
+
+			</div>
+
+		</div>
+
+		<script src="reveal/lib/js/head.min.js"></script>
+		<script src="reveal/js/reveal.js"></script>
+
+		<script>
+
+			// More info https://github.com/hakimel/reveal.js#configuration
+			Reveal.initialize({
+				controls: true,
+				progress: true,
+				history: true,
+				center: true,
+
+				transition: 'convex', // none/fade/slide/convex/concave/zoom
+
+				// More info https://github.com/hakimel/reveal.js#dependencies
+				dependencies: [
+					{ src: 'reveal/lib/js/classList.js', condition: function() { return !document.body.classList; } },
+					{ src: 'reveal/plugin/markdown/marked.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+					{ src: 'reveal/plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+					{ src: 'reveal/plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } },
+					{ src: 'reveal/plugin/zoom-js/zoom.js', async: true },
+					{ src: 'reveal/plugin/notes/notes.js', async: true }
+				]
+			});
+
+		</script>
+
+	</body>
+</html>
