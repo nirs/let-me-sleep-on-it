@@ -50,7 +50,7 @@
 				<section>
           <pre style="width: 100%; font-size: 100%"><code class="hljs nohighlight" data-trim>
 $ whoami
-Taming Vdsm beast since 2013
+Taming the Vdsm beast since 2013
 Tinkering with Python since 2003
 Free software enthusiast
 Father of two
@@ -131,7 +131,7 @@ with line in file:
         <section>
 
           <section>
-            <h2>Vdsm is using a lot of threads</h2>
+            <h2>Vdsm uses lot of threads</h2>
           </section>
 
           <section>
@@ -163,19 +163,19 @@ D+   dd if=/dev/zero of=mnt/test bs=8M count=1280 oflag=direct
           </section>
 
           <section>
-            <h3>Vdsm is monitoring storage</h3>
+            <h3>Vdsm monitors storage</h3>
             <p>Every storage domain has a dedicated thread - we can have 50 of these</p>
           </section>
 
           <section>
             <h3>Monitor threads are isolated</h3>
-            <p>If one thread get stuck on unresponsive storage, other threads are not affected</p>
+            <p>If one thread gets stuck on unresponsive storage, other threads are not affected</p>
           </section>
 
           <section>
             <h3>Monitor threads run LVM commands</h3>
             <ul style="list-style: none; margin: 0; text-align: center">
-              <li>Vdsm is managing block storage using LVM</li>
+              <li>Vdsm manages block storage using LVM</li>
               <li>Creates logical volumes for VM disks and snapshots</li>
             </ul>
           </section>
@@ -344,9 +344,9 @@ class OperationMutex(object):
           </section>
 
           <section>
-            <h3>How Operation Mutex tests are passing?</h3>
+            <h3>How are Operation Mutex tests passing?</h3>
             <ul style="list-style: none; margin: 0; text-align: center">
-              <li class="fragment">There are no OperationMutex tests</li>
+              <li class="fragment">There are no Operation Mutex tests</li>
               <li class="fragment">Original author had correctness proof</li>
             </ul>
           </section>
@@ -361,7 +361,7 @@ class OperationMutex(object):
 
           <section>
             <h3>Adding tests</h3>
-            <p>Lets start with the easy case, allowing multiple threads to perform the same operation</p>
+            <p>Let's start with the easy case, allowing multiple threads to perform the same operation</p>
           </section>
 
           <section>
@@ -376,7 +376,7 @@ def test_same_operation():
 
     elapsed = run_threads(worker, 50)
 
-    assert elapsed < 2.0
+    assert elapsed &lt; 2.0
             </code></pre>
           </section>
 
@@ -440,7 +440,7 @@ def test_refresh_flow(run):
             cache[n] = "new"
 
     elapsed = run_threads(worker, count)
-    assert elapsed < 2.0
+    assert elapsed &lt; 2.0
     assert cache == ["new"] * count
             </code></pre>
           </section>
@@ -508,20 +508,20 @@ worker-10: Operation 'reload' is holding the mutex, waiting...
           </section>
 
           <section>
-            <h3>Why it fails?</h3>
+            <h3>Why does it fail?</h3>
             <ol>
-              <li>Thread 0 acquire the GIL</li>
-              <li>Thread 0 acquire the operation mutex</li>
+              <li>Thread 0 acquires the GIL</li>
+              <li>Thread 0 acquires the operation mutex</li>
               <li>Other threads could acquire the operation mutex, but thread 0 is holding the GIL</li>
-              <li>Thread 0 release the operation mutex</li>
-              <li>Thread 0 acquire the operation mutex again</li>
-              <li>Thread 0 release the GIL during sleep</li>
+              <li>Thread 0 releases the operation mutex</li>
+              <li>Thread 0 acquires the operation mutex again</li>
+              <li>Thread 0 releases the GIL during sleep</li>
               <li>Other threads cannot acquire the operation mutex, waiting...</li>
             </ol>
           </section>
 
           <section>
-            <h3>How it should work</h3>
+            <h3>How should it work</h3>
             <ol>
               <li>All threads enter the operation mutex for "invalidate" operation</li>
               <li>All threads exit the operation mutex</li>
@@ -585,7 +585,7 @@ worker-00: Operation 'invalidate' is holding the mutex, waiting...
 
           <section>
             <h3>Are we done?</h3>
-            <p>Need to sleep on it more...</p>
+            <p>Need to sleep on it a bit more...</p>
           </section>
 
           <section>
@@ -615,8 +615,8 @@ worker-00: Operation 'invalidate' is holding the mutex, waiting...
 				<section>
           <h2>Patches are welcome</h2>
           <ul style="list-style: none; margin: 0; text-align: center">
-            <li><a href="https://github.com/ovirt/">https://github.com/ovirt/</a></li>
-            <li><a href="https://github.com/nirs/let-me-sleep-on-it/">https://github.com/nirs/let-me-sleep-on-it</a></li>
+            <li><a href="https://github.com/ovirt">https://github.com/ovirt</a></li>
+            <li><a href="https://github.com/nirs/let-me-sleep-on-it">https://github.com/nirs/let-me-sleep-on-it</a></li>
           </ul>
 				</section>
 
