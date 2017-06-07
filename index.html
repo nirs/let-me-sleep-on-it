@@ -35,7 +35,6 @@
 
 		<div class="reveal">
 
-			<!-- Any section element inside of this container is displayed as a slide -->
 			<div class="slides">
 
 				<section>
@@ -58,156 +57,167 @@ Father of two
           </code></pre>
 				</section>
 
-				<section>
-          <h2>Python threads suck</h2>
-          <p>Everyone knows that Python threads are useless</p>
-				</section>
+        <section>
 
-				<section>
-          <h2>The GIL</h2>
-          <p>Only one thread can run Python code at the same time</p>
-				</section>
+          <section>
+            <h2>Python threads suck</h2>
+          </section>
 
-				<section>
-          <h2>The GIL</h2>
-          <pre style="width: 100%; font-size: 100%"><code data-trim>
+          <section>
+            <h3>The GIL</h3>
+            <p>The global interpretor lock let only one thread can run Python code at the same time</p>
+          </section>
+
+          <section>
+            <h3>What's going on here?</h3>
+            <pre style="width: 100%"><code data-trim>
 Py_BEGIN_ALLOW_THREADS
 n = read(fd, buf, count);
 Py_END_ALLOW_THREADS
-          </code></pre>
-				</section>
+            </code></pre>
+            <p class="fragment">Python releases the GIL when possible</p>
+          </section>
 
-				<section>
-          <h2>syscalls can block</h2>
-          <p>read(2) can block for minutes</p>
-          <p>Non blocking io does not help</p>
-				</section>
+          <section>
+            <h3>Python threads are useful</h3>
+            <p>You can do I/O or wait for other programs concurrently</p>
+          </section>
 
-				<section>
-          <h2>Python threads are useful</h2>
-          <p>You can do I/O or wait for other programs concurrently</p>
-				</section>
+          <section>
+            <h3>Sequential code is easy</h3>
+            <p>Complex flows are easy and clear when you can write sequential
+            code </p>
+          </section>
 
-				<section>
-          <h2>Sequential code is easy</h2>
-          <p>Complex flows are easy and clear when you can write sequential
-          code </p>
-				</section>
-
-				<section>
-          <h2>Error handling is easy</h2>
-          <pre style="width: 100%; font-size: 100%"><code class="Python" data-trim>
+          <section>
+            <h3>Sequential error handling is safe</h3>
+            <pre style="width: 100%"><code class="Python" data-trim>
 try:
     complex_flow()
 except:
     handle_it()
 finally:
     cleanup()
-          </code></pre>
-				</section>
+            </code></pre>
+          </section>
 
-				<section>
-          <h2>Context managers are great</h2>
-          <pre style="font-size: 100%"><code class="Python" data-trim>
+          <section>
+            <h3>Context managers are great</h3>
+            <pre style="width: 100%"><code class="Python" data-trim>
 with cleanup():
     complex_flow()
-          </code></pre>
-				</section>
+            </code></pre>
+          </section>
 
-				<section>
-          <h2>Generators are awesome</h2>
-          <pre style="font-size: 100%"><code class="Python" data-trim>
+          <section>
+            <h3>Generators are awesome</h3>
+            <pre style="width: 100%"><code class="Python" data-trim>
 with line in file:
     handle(line)
-          </code></pre>
-				</section>
+            </code></pre>
+          </section>
 
-				<section>
-          <h2>No callback hell</h2>
-          <ul style="list-style: none; margin: 0; text-align: center">
-            <li>Or promise hell</li>
-            <li>Or yield from hell</li>
-            <li>Or async await hell</li>
-          </ul>
-				</section>
+          <section>
+            <h3>No callback hell</h3>
+            <ul style="list-style: none; margin: 0; text-align: center">
+              <li>No promise hell</li>
+              <li>No yield from hell</li>
+              <li>No async await hell</li>
+            </ul>
+          </section>
 
-				<section>
-          <h2>Vdsm is using lot of threads</h2>
-				</section>
+        </section>
 
-				<section>
-          <h2>What is Vdsm?</h2>
-          <p>Vdsm manage virtual machines on a hypervisor</p>
-				</section>
+        <section>
 
-				<section>
-          <h2>Virtual machines<br>need storage</h2>
-          <p>Vdsm provides storage for virtual machines, typically shared storage (FC, iSCSI, NFS, GlusterFS, Ceph)</p>
-				</section>
+          <section>
+            <h2>Vdsm is using a lot of threads</h2>
+          </section>
 
-				<section>
-          <h2>Shared storage is fast</h2>
-          <p>Seen 750MiB/s writes using direct I/O to SSD disk array</p>
-				</section>
+          <section>
+            <h3>What is Vdsm?</h3>
+            <p>Vdsm manages virtual machines on a hypervisor</p>
+          </section>
 
-				<section>
-          <h2>Shared storage is slow</h2>
-          <pre style="width: 100%"><code class="Python" data-trim>
+          <section>
+            <h3>Virtual machines need storage</h3>
+            <ul style="list-style: none; margin: 0; text-align: center">
+              <li>Vdsm provides storage for virtual machines<li>
+              <li>typically shared storage</li>
+              <li>FC, iSCSI, NFS, GlusterFS, Ceph</li>
+            </ul>
+          </section>
+
+          <section>
+            <h3>Shared storage is extremely fast</h3>
+            <p>Seen 750MiB/s writes using direct I/O to SSD disk array</p>
+          </section>
+
+          <section>
+            <h3>Shared storage is horribly slow</h3>
+            <pre style="width: 100%"><code class="Python" data-trim>
 $ ps -p 32729 -o stat -o cmd
 STAT CMD
 D+   dd if=/dev/zero of=mnt/test bs=8M count=1280 oflag=direct
-          </code></pre>
-				</section>
+            </code></pre>
+          </section>
 
-				<section>
-          <h2>Vdsm is monitoring storage</h2>
-          <p>Every storage domain has a dedicated thread - we can have 50 of these</p>
-				</section>
+          <section>
+            <h3>Vdsm is monitoring storage</h3>
+            <p>Every storage domain has a dedicated thread - we can have 50 of these</p>
+          </section>
 
-				<section>
-          <h2>Monitor threads<br>are isolated</h2>
-          <p>If one thread get stuck on unresponsive storage, other threads are not affected</p>
-				</section>
+          <section>
+            <h3>Monitor threads are isolated</h3>
+            <p>If one thread get stuck on unresponsive storage, other threads are not affected</p>
+          </section>
 
-				<section>
-          <h2>Monitor threads<br>run LVM commands</h2>
-          <ul style="list-style: none; margin: 0; text-align: center">
-            <li>Vdsm is managing block storage using LVM</li>
-            <li>Creates logical volumes for VM disks and snapshots</li>
-          </ul>
-				</section>
+          <section>
+            <h3>Monitor threads run LVM commands</h3>
+            <ul style="list-style: none; margin: 0; text-align: center">
+              <li>Vdsm is managing block storage using LVM</li>
+              <li>Creates logical volumes for VM disks and snapshots</li>
+            </ul>
+          </section>
 
-				<section>
-          <h2>Accessing LVM<br>metadata is slow</h2>
-          <p>Vdsm caches LVM metadata</p>
-				</section>
+          <section>
+            <h3>Accessing LVM metadata is slow</h3>
+            <p>Vdsm caches LVM metadata</p>
+          </section>
 
-				<section>
-          <blockquote>
-            &ldquo;There are only two hard things in Computer Science: cache invalidation and naming things.&rdquo;
-            <br>
-            -- Phil Karlton
-          </blockquote>
-				</section>
+          <section>
+            <blockquote>
+              &ldquo;There are only two hard things in Computer Science: cache invalidation and naming things.&rdquo;
+              <br>
+              -- Phil Karlton
+            </blockquote>
+          </section>
 
-				<section>
-          <h2>Monitor threads<br>invalidate LVM cache</h2>
-          <p>Monitor threads invalidate the cache and run LVM commands to reload the cache</p>
-				</section>
+          <section>
+            <h3>Monitor threads refresh LVM cache</h3>
+            <p>Monitor threads invalidate the cache and run LVM commands to reload the cache</p>
+          </section>
 
-				<section>
-          <h2>LVM cache uses fancy locking</h2>
-          <ul style="list-style: none; margin: 0; text-align: center">
-            <li>Multiple threads can invalidate the cache</li>
-            <li>Multiple threads can reload the cache</li>
-            <li>Invalidate and reload cannot run in the same time</li>
-          </ul>
-				</section>
+        </section>
 
-				<section>
-          <h2>LVM Cache</h2>
-          <pre style="width: 100%"><code class="Python" data-trim>
+        <section>
 
+          <section>
+            <h2>Operation Mutex</h2>
+          </section>
+
+          <section>
+            <h3>LVM cache uses fancy locking</h3>
+            <ul style="list-style: none; margin: 0; text-align: center">
+              <li>Multiple threads can invalidate the cache</li>
+              <li>Multiple threads can reload the cache</li>
+              <li>Invalidate and reload cannot run in the same time</li>
+            </ul>
+          </section>
+
+          <section>
+            <h3>LVM Cache</h3>
+            <pre style="width: 100%"><code class="Python" data-trim>
 class LVMCache(object):
     ...
     def _invalidate_lvs(self, vg_name, lv_names):
@@ -220,15 +230,15 @@ class LVMCache(object):
             lvm_output = self._run_lvs(vg_name, lv_names)
             for lv in self._parse_lvs(lvm_output):
                 self._lvs[(vg_name, lv_name)] = lv
-          </code></pre>
-        <p>
-          <small>(Simplified)</small>
-        </p>
-				</section>
+            </code></pre>
+          <p>
+            <small>(Simplified)</small>
+          </p>
+          </section>
 
-				<section>
-          <h2>Operation Mutex [1/3]</h2>
-          <pre style="width: 100%"><code class="Python" data-trim>
+          <section>
+            <h3>Operation Mutex [1/3]</h3>
+            <pre style="width: 100%"><code class="Python" data-trim>
 class OperationMutex(object):
 
     def __init__(self):
@@ -243,12 +253,12 @@ class OperationMutex(object):
             yield self
         finally:
             self._release()
-          </code></pre>
-				</section>
+            </code></pre>
+          </section>
 
-				<section>
-          <h2>Operation Mutex [2/3]</h2>
-          <pre style="width: 100%"><code class="Python" data-trim>
+          <section>
+            <h3>Operation Mutex [2/3]</h3>
+            <pre style="width: 100%"><code class="Python" data-trim>
     def _acquire(self, operation):
         with self._cond:
             while self._operation not in (operation, None):
@@ -263,12 +273,12 @@ class OperationMutex(object):
                           operation)
                 self._operation = operation
             self._holders += 1
-          </code></pre>
-				</section>
+            </code></pre>
+          </section>
 
-				<section>
-          <h2>Operation Mutex [3/3]</h2>
-          <pre style="width: 100%"><code class="Python" data-trim>
+          <section>
+            <h3>Operation Mutex [3/3]</h3>
+            <pre style="width: 100%"><code class="Python" data-trim>
     def _release(self):
         with self._cond:
             self._holders -= 1
@@ -280,12 +290,12 @@ class OperationMutex(object):
             else:
                 log.debug("Operation %r existed the mutex",
                           self._operation)
-          </code></pre>
-				</section>
+            </code></pre>
+          </section>
 
-				<section>
-          <h2>Operation Mutex in practice</h2>
-          <pre style="font-size: 0.50em"><code class="hljs nohighlight" data-trim>
+          <section>
+            <h3>Operation Mutex in practice</h3>
+            <pre style="font-size: 0.50em"><code class="hljs nohighlight" data-trim>
 (_invalidate_lvs) 'lvm reload' is holding the mutex, waiting...
 (_reload_vgs) 'lvm reload' is holding the mutex, waiting...
 (_invalidate_vgs) 'lvm reload' is holding the mutex, waiting...
@@ -302,67 +312,61 @@ class OperationMutex(object):
 (_invalidate_vgs) 'lvm reload' is holding the mutex, waiting...
 (_invalidate_vgs) 'lvm reload' is holding the mutex, waiting...
 (_invalidate_vgs) 'lvm reload' is holding the mutex, waiting...
-(_invalidate_vgs) 'lvm reload' is holding the mutex, waiting...
-(_invalidate_vgs) 'lvm reload' is holding the mutex, waiting...
-(_invalidate_vgs) 'lvm reload' is holding the mutex, waiting...
-(_invalidate_vgs) 'lvm reload' is holding the mutex, waiting...
-(_invalidate_vgs) 'lvm reload' is holding the mutex, waiting...
-(_invalidate_vgs) 'lvm reload' is holding the mutex, waiting...
-(_invalidate_vgs) 'lvm reload' is holding the mutex, waiting...
-(_invalidate_vgs) 'lvm reload' is holding the mutex, waiting...
-(_invalidate_vgs) 'lvm reload' is holding the mutex, waiting...
-(_invalidate_vgs) 'lvm reload' is holding the mutex, waiting...
-(_invalidate_vgs) 'lvm reload' is holding the mutex, waiting...
-(_reload_lvs) 'lvm reload' is holding the mutex, waiting...
-(_invalidate_vgs) 'lvm reload' is holding the mutex, waiting...
-(_invalidate_vgs) 'lvm reload' is holding the mutex, waiting...
-          </code></pre>
-          <p>
-          <small>(Simplified)</small>
-          </p>
-				</section>
+            </code></pre>
+            <p>
+            <small>(Simplified)</small>
+            </p>
+          </section>
 
-				<section>
-          <h2>Operation Mutex<br>is not useful</h2>
-          <p>Only one monitor thread enter the operation mutex</p>
-				</section>
+          <section>
+            <h3>Problem</h3>
+            <p>Too many threads waiting, most of the time only one monitor thread inside the operation mutex</p>
+          </section>
 
-				<section>
-          <h2>Operation mutex is harmful</h2>
-          <ul style="list-style: none; margin: 0; text-align: center">
-            <li>Lot of storage domains...</li>
-            <li>Storage is overloaded...</li>
-            <li>LVM commands become slow...</li>
-            <li>Monitor threads waiting...</li>
-            <li>Monitoring timeouts...</li>
-            <li>Hypervisor goes down</li>
-          </ul>
-				</section>
+          <section>
+            <h3>Operation mutex is harmful</h3>
+            <ul style="list-style: none; margin: 0; text-align: center">
+              <li>Lot of storage domains...</li>
+              <li>Storage is overloaded...</li>
+              <li>LVM commands become slow...</li>
+              <li>Monitor threads waiting...</li>
+              <li>Monitoring timeouts...</li>
+              <li>Hypervisor goes down</li>
+            </ul>
+          </section>
 
-				<section>
-          <h2>Why Operation Mutex tests are passing?</h2>
-          <ul style="list-style: none; margin: 0; text-align: center">
-            <li>There are no OperationMutex tests</li>
-            <li>Original author had correctness proofs</li>
-          </ul>
-				</section>
+        </section>
 
-				<section>
-          <blockquote>
-            &ldquo;Code without tests is broken.&rdquo;
-            <br>
-            -- Nir Soffer
-          </blockquote>
-				</section>
+        <section>
 
-				<section>
-          <h2>Adding tests</h2>
-          <p>Lets start with the easy case, allowing multiple threads to perform the same operation</p>
-				</section>
+          <section>
+            <h2>Fixing Operation Mutex</h2>
+          </section>
 
-				<section>
-          <h2>Testing same operation</h2>
-          <pre style="font-size: 0.50em"><code class="Python" data-trim>
+          <section>
+            <h3>Why Operation Mutex tests are passing?</h3>
+            <ul style="list-style: none; margin: 0; text-align: center">
+              <li>There are no OperationMutex tests</li>
+              <li>Original author had correctness proofs</li>
+            </ul>
+          </section>
+
+          <section>
+            <blockquote>
+              &ldquo;Code without tests is broken.&rdquo;
+              <br>
+              -- Nir Soffer
+            </blockquote>
+          </section>
+
+          <section>
+            <h3>Adding tests</h3>
+            <p>Lets start with the easy case, allowing multiple threads to perform the same operation</p>
+          </section>
+
+          <section>
+            <h3>Testing same operation</h3>
+            <pre style="font-size: 0.50em"><code class="Python" data-trim>
 def test_same_operation():
     m = opmutex.OperationMutex()
 
@@ -373,13 +377,12 @@ def test_same_operation():
     elapsed = run_threads(worker, 50)
 
     assert elapsed < 2.0
-          </code></pre>
-				</section>
+            </code></pre>
+          </section>
 
-
-				<section>
-          <h2>We need some help</h2>
-          <pre style="font-size: 0.50em"><code class="Python" data-trim>
+          <section>
+            <h3>We need some help</h3>
+            <pre style="font-size: 0.50em"><code class="Python" data-trim>
 def run_threads(func, count):
     threads = []
     start = time.time()
@@ -395,31 +398,35 @@ def run_threads(func, count):
         for t in threads:
             t.join()
     return time.time() - start
-          </code></pre>
-				</section>
+            </code></pre>
+          </section>
 
+          <section>
+            <h3>Test pass!</h3>
+            <pre style="width: 100%"><code class="hljs nohighlight" data-trim>
+opmutex_test.py::test_same_operation PASSED
+            </code></pre>
+          </section>
 
-				<section>
-          <h2>Refresh LVM cache flow</h2>
-          <ol>
-            <li>Invalidate VG cache</li>
-            <li>Reload VG cache</li>
-          </ol>
-				</section>
+          <section>
+            <h3>Refresh LVM cache flow</h3>
+            <ol>
+              <li>Invalidate VG cache</li>
+              <li>Reload VG cache</li>
+            </ol>
+          </section>
 
+          <section>
+            <h3>Time matters</h3>
+            <ol>
+              <li>Invalidate takes no time - updates a dict</li>
+              <li>Reload takes several seconds - goes to storage</li>
+            </ol>
+          </section>
 
-				<section>
-          <h2>Time matters</h2>
-          <ol>
-            <li>Invalidate takes no time - updates a dict</li>
-            <li>Reload takes several seconds - goes to storage</li>
-          </ol>
-				</section>
-
-
-				<section>
-          <h2>Testing refresh flow</h2>
-          <pre style="width: 100%"><code class="Python" data-trim>
+          <section>
+            <h3>Testing refresh flow</h3>
+            <pre style="width: 100%"><code class="Python" data-trim>
 def test_refresh_flow(run):
     count = 50
     m = opmutex.OperationMutex()
@@ -435,19 +442,17 @@ def test_refresh_flow(run):
     elapsed = run_threads(worker, count)
     assert elapsed < 2.0
     assert cache == ["new"] * count
-          </code></pre>
-				</section>
+            </code></pre>
+          </section>
 
+          <section>
+            <h3>Test fails randomly</h3>
+            <p>Testing threading issues is tricky</p>
+          </section>
 
-				<section>
-          <h2>Test fails randomly</h2>
-          <p>Testing threading issues is tricky</p>
-				</section>
-
-
-				<section>
-          <h2>Making it fail</h2>
-          <pre style="width: 100%"><code class="Python" data-trim>
+          <section>
+            <h3>Making it fail</h3>
+            <pre style="width: 100%"><code class="Python" data-trim>
 @pytest.mark.parametrize("run", range(10))
 def test_refresh_flow(run):
     count = 50
@@ -463,14 +468,12 @@ def test_refresh_flow(run):
 
     elapsed = run_threads(worker, count)
     assert elapsed < 2.0
-    assert cache == ["new"] * count
-          </code></pre>
-				</section>
+            </code></pre>
+          </section>
 
-
-				<section>
-          <h2>Failing tests are good</h2>
-          <pre style="font-size: 0.50em"><code data-trim>
+          <section>
+            <h3>Failing tests are good</h3>
+            <pre style="font-size: 0.50em"><code data-trim>
 opmutex_test.py::test_same_operation PASSED
 opmutex_test.py::test_refresh_flow[0] FAILED
 opmutex_test.py::test_refresh_flow[1] PASSED
@@ -482,13 +485,12 @@ opmutex_test.py::test_refresh_flow[6] PASSED
 opmutex_test.py::test_refresh_flow[7] FAILED
 opmutex_test.py::test_refresh_flow[8] PASSED
 opmutex_test.py::test_refresh_flow[9] FAILED
-          </code></pre>
-				</section>
+            </code></pre>
+          </section>
 
-
-				<section>
-          <h2>Test failure log</h2>
-          <pre style="font-size: 0.50em; witdh: 80%"><code data-trim>
+          <section>
+            <h3>Test failure log</h3>
+            <pre style="font-size: 0.50em; witdh: 80%"><code data-trim>
 worker-00: Operation 'invalidate' acquired the mutex
 worker-00: Operation 'invalidate' released the mutex
 worker-00: Operation 'reload' acquired the mutex
@@ -502,61 +504,50 @@ worker-07: Operation 'reload' is holding the mutex, waiting...
 worker-08: Operation 'reload' is holding the mutex, waiting...
 worker-09: Operation 'reload' is holding the mutex, waiting...
 worker-10: Operation 'reload' is holding the mutex, waiting...
-          </code></pre>
-				</section>
+            </code></pre>
+          </section>
 
+          <section>
+            <h3>Why it fails?</h3>
+            <ol>
+              <li>Thread 0 acquire the GIL</li>
+              <li>Thread 0 acquire the operation mutex</li>
+              <li>Other threads could acquire the operation mutex, but thread 0 is holding the GIL</li>
+              <li>Thread 0 release the operation mutex</li>
+              <li>Thread 0 acquire the operation mutex again</li>
+              <li>Thread 0 release the GIL during sleep</li>
+              <li>Other threads cannot acquire the operation mutex, waiting...</li>
+            </ol>
+          </section>
 
-				<section>
-          <h2>Why it fails?</h2>
-          <ol>
-            <li>Thread 0 acquire the GIL</li>
-            <li>Thread 0 acquire the operation mutex</li>
-            <li>Other thread could acquire the operation mutex, but thread 0 is holding the GIL</li>
-            <li>Thread 0 release the operation mutex</li>
-            <li>Thread 0 acquire the operation mutex again</li>
-            <li>Thread 0 release the GIL during sleep</li>
-            <li>Other thread cannot acquire the operation mutex now</li>
-          </ol>
-				</section>
+          <section>
+            <h3>How it should work</h3>
+            <ol>
+              <li>All threads enter the operation mutex for "invalidate" operation</li>
+              <li>All threads exit the operation mutex</li>
+              <li>All threads enter the operation mutex for "reload" operation</li>
+              <li>All threads exit the operation mutex</li>
+            </ol>
+          </section>
 
+          <section>
+            <h3>Can we fix it?</h3>
+            <p>Need to sleep on it</p>
+          </section>
 
-				<section>
-          <h2>How it should work</h2>
-          <ol>
-            <li>All threads enter the operation mutex for "invalidate" operation</li>
-            <li>All threads exit the operation mutex</li>
-            <li>All threads enter the operation mutex for "reload" operation</li>
-            <li>All threads exit the operation mutex</li>
-          </ol>
-				</section>
+          <section>
+            <h3>Threads are not polite</h3>
+            <p>When you enter a building, you hold the door so the next person can enter</p>
+          </section>
 
+          <section>
+            <h3>How can we make threads polite?</h3>
+            <p class="fragment">When entering the operation mutex, take a little nap, letting other threads in</p>
+          </section>
 
-				<section>
-          <h2>Can we fix it?</h2>
-          <p>Need to sleep on it</p>
-				</section>
-
-
-				<section>
-          <h2>Threads are not polite</h2>
-          <p>When you enter a building, you hold the door so the next person can enter</p>
-				</section>
-
-
-				<section>
-          <h2>How can we make threads more polite?</h2>
-				</section>
-
-
-				<section>
-          <h2>Making threads polite</h2>
-          <p>When a thread enter the operation mutex, take a little nap, letting other threads in</p>
-				</section>
-
-
-				<section>
-          <h2>Take a little nap</h2>
-          <pre style="width: 100%"><code class="Python" data-trim>
+          <section>
+            <h3>Take a little nap</h3>
+            <pre style="width: 100%"><code class="Python" data-trim>
     @contextmanager
     def locked(self, operation):
         self._acquire(operation)
@@ -566,13 +557,12 @@ worker-10: Operation 'reload' is holding the mutex, waiting...
             yield self
         finally:
             self._release()
-          </code></pre>
-				</section>
+            </code></pre>
+          </section>
 
-
-				<section>
-          <h2>Fixed test log</h2>
-          <pre style="font-size: 0.50em; width: 100%"><code data-trim>
+          <section>
+            <h3>Fixed test log</h3>
+            <pre style="font-size: 0.50em; width: 100%"><code data-trim>
 worker-00: Operation 'invalidate' acquired the mutex
 worker-01: Operation 'invalidate' entered the mutex
 worker-02: Operation 'invalidate' entered the mutex
@@ -586,46 +576,41 @@ worker-01: Operation 'invalidate' existed the mutex
 worker-02: Operation 'invalidate' existed the mutex
 worker-00: Operation 'invalidate' is holding the mutex, waiting...
 ...
-          </code></pre>
-				</section>
+            </code></pre>
+          </section>
 
+          <section>
+            <h3>Fix available in ovirt-3.6</h3>
+          </section>
 
-				<section>
-          <h2>Fix available in ovirt-3.6</h2>
-				</section>
+          <section>
+            <h3>Are we done?</h3>
+            <p>Need to sleep on it more...</p>
+          </section>
 
+          <section>
+            <h3>Why do we need the operation mutex?</h3>
+          </section>
 
-				<section>
-          <h2>Are we done?</h2>
-          <p>Need to sleep on it more...</p>
-				</section>
+          <section>
+            <h3>We don't</h3>
+            <p>OperationMutex was removed in ovirt-4.0</p>
+          </section>
 
+          <section>
+            <blockquote>
+              &ldquo;The Best Code is No Code At All.&rdquo;
+              <br>
+              -- Unknown
+            </blockquote>
+          </section>
 
-				<section>
-          <h2>Why do we need the operation mutex?</h2>
-				</section>
-
-
-				<section>
-          <h2>We don't</h2>
-          <p>OperationMutex was removed in ovirt-4.0</p>
-				</section>
-
-
-				<section>
-          <blockquote>
-            &ldquo;The Best Code is No Code At All.&rdquo;
-            <br>
-            -- Unknown
-          </blockquote>
-				</section>
-
+        </section>
 
 				<section>
           <h2>Thank you!</h2>
           <p>Questions?</p>
 				</section>
-
 
 				<section>
           <h2>Patches are welcome</h2>
@@ -634,7 +619,6 @@ worker-00: Operation 'invalidate' is holding the mutex, waiting...
             <li><a href="https://github.com/nirs/let-me-sleep-on-it/">https://github.com/nirs/let-me-sleep-on-it</a></li>
           </ul>
 				</section>
-
 
 			</div>
 
