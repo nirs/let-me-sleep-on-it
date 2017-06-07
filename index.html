@@ -84,7 +84,7 @@ Py_END_ALLOW_THREADS
 				</section>
 
 				<section>
-          <h2>Python thrads are useful</h2>
+          <h2>Python threads are useful</h2>
           <p>You can do I/O or wait for other programs concurrently</p>
 				</section>
 
@@ -98,7 +98,7 @@ Py_END_ALLOW_THREADS
           <h2>Error handling is easy</h2>
           <pre style="width: 100%; font-size: 100%"><code class="Python" data-trim>
 try:
-    complex_folow()
+    complex_flow()
 except:
     handle_it()
 finally:
@@ -115,7 +115,7 @@ with cleanup():
 				</section>
 
 				<section>
-          <h2>Genrators are awesome</h2>
+          <h2>Generators are awesome</h2>
           <pre style="font-size: 100%"><code class="Python" data-trim>
 with line in file:
     handle(line)
@@ -142,7 +142,7 @@ with line in file:
 
 				<section>
           <h2>Virtual machines<br>need storage</h2>
-          <p>Vdsm provide storage for virtual machines, typically shared storage (FC, iSCSI, NFS, GlusterFS, Ceph)</p>
+          <p>Vdsm provides storage for virtual machines, typically shared storage (FC, iSCSI, NFS, GlusterFS, Ceph)</p>
 				</section>
 
 				<section>
@@ -173,7 +173,7 @@ D+   dd if=/dev/zero of=mnt/test bs=8M count=1280 oflag=direct
           <h2>Monitor threads<br>run LVM commands</h2>
           <ul style="list-style: none; margin: 0; text-align: center">
             <li>Vdsm is managing block storage using LVM</li>
-            <li>Create logical volumes for VM disks and snapshots</li>
+            <li>Creates logical volumes for VM disks and snapshots</li>
           </ul>
 				</section>
 
@@ -192,7 +192,7 @@ D+   dd if=/dev/zero of=mnt/test bs=8M count=1280 oflag=direct
 
 				<section>
           <h2>Monitor threads<br>invalidate LVM cache</h2>
-          <p>Monitor thread invalidate the cache and run LVM commands to reload the cache</p>
+          <p>Monitor threads invalidate the cache and run LVM commands to reload the cache</p>
 				</section>
 
 				<section>
@@ -591,7 +591,7 @@ worker-00: Operation 'invalidate' is holding the mutex, waiting...
 
 
 				<section>
-          <h2>Fix Availbe in ovirt-3.6</h2>
+          <h2>Fix available in ovirt-3.6</h2>
 				</section>
 
 
