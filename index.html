@@ -51,7 +51,7 @@
 				<section>
           <pre style="width: 100%; font-size: 100%"><code class="hljs nohighlight" data-trim>
 $ whoami
-Taming Vdsm beast since 2013
+Taming the Vdsm beast since 2013
 Tinkering with Python since 2003
 Free software enthusiast
 Father of two
@@ -132,12 +132,12 @@ with line in file:
 				</section>
 
 				<section>
-          <h2>Vdsm is using lot of threads</h2>
+          <h2>Vdsm uses lot of threads</h2>
 				</section>
 
 				<section>
           <h2>What is Vdsm?</h2>
-          <p>Vdsm manage virtual machines on a hypervisor</p>
+          <p>Vdsm manages virtual machines on a hypervisor</p>
 				</section>
 
 				<section>
@@ -160,19 +160,19 @@ D+   dd if=/dev/zero of=mnt/test bs=8M count=1280 oflag=direct
 				</section>
 
 				<section>
-          <h2>Vdsm is monitoring storage</h2>
+          <h2>Vdsm monitors storage</h2>
           <p>Every storage domain has a dedicated thread - we can have 50 of these</p>
 				</section>
 
 				<section>
           <h2>Monitor threads<br>are isolated</h2>
-          <p>If one thread get stuck on unresponsive storage, other threads are not affected</p>
+          <p>If one thread gets stuck on unresponsive storage, other threads are not affected</p>
 				</section>
 
 				<section>
           <h2>Monitor threads<br>run LVM commands</h2>
           <ul style="list-style: none; margin: 0; text-align: center">
-            <li>Vdsm is managing block storage using LVM</li>
+            <li>Vdsm manages block storage using LVM</li>
             <li>Creates logical volumes for VM disks and snapshots</li>
           </ul>
 				</section>
@@ -324,7 +324,7 @@ class OperationMutex(object):
 
 				<section>
           <h2>Operation Mutex<br>is not useful</h2>
-          <p>Only one monitor thread enter the operation mutex</p>
+          <p>Only one monitor thread can enter the operation mutex</p>
 				</section>
 
 				<section>
@@ -340,9 +340,9 @@ class OperationMutex(object):
 				</section>
 
 				<section>
-          <h2>Why Operation Mutex tests are passing?</h2>
+          <h2>Why are Operation Mutex tests passing?</h2>
           <ul style="list-style: none; margin: 0; text-align: center">
-            <li>There are no OperationMutex tests</li>
+            <li>There are no Operation Mutex tests</li>
             <li>Original author had correctness proofs</li>
           </ul>
 				</section>
@@ -357,7 +357,7 @@ class OperationMutex(object):
 
 				<section>
           <h2>Adding tests</h2>
-          <p>Lets start with the easy case, allowing multiple threads to perform the same operation</p>
+          <p>Let's start with the easy case, allowing multiple threads to perform the same operation</p>
 				</section>
 
 				<section>
@@ -372,7 +372,7 @@ def test_same_operation():
 
     elapsed = run_threads(worker, 50)
 
-    assert elapsed < 2.0
+    assert elapsed &lt; 2.0
           </code></pre>
 				</section>
 
@@ -507,25 +507,25 @@ worker-10: Operation 'reload' is holding the mutex, waiting...
 
 
 				<section>
-          <h2>Why it fails?</h2>
+          <h2>Why does it fail?</h2>
           <ol>
-            <li>Thread 0 acquire the GIL</li>
-            <li>Thread 0 acquire the operation mutex</li>
-            <li>Other thread could acquire the operation mutex, but thread 0 is holding the GIL</li>
-            <li>Thread 0 release the operation mutex</li>
-            <li>Thread 0 acquire the operation mutex again</li>
-            <li>Thread 0 release the GIL during sleep</li>
-            <li>Other thread cannot acquire the operation mutex now</li>
+            <li>Thread 0 acquires the GIL</li>
+            <li>Thread 0 acquires the operation mutex</li>
+            <li>Another thread could acquire the operation mutex, but thread 0 is holding the GIL</li>
+            <li>Thread 0 releases the operation mutex</li>
+            <li>Thread 0 acquires the operation mutex again</li>
+            <li>Thread 0 releases the GIL during sleep</li>
+            <li>Another thread cannot acquire the operation mutex now</li>
           </ol>
 				</section>
 
 
 				<section>
-          <h2>How it should work</h2>
+          <h2>How should it work?</h2>
           <ol>
-            <li>All threads enter the operation mutex for "invalidate" operation</li>
+            <li>All threads enter the operation mutex for the "invalidate" operation</li>
             <li>All threads exit the operation mutex</li>
-            <li>All threads enter the operation mutex for "reload" operation</li>
+            <li>All threads enter the operation mutex for the "reload" operation</li>
             <li>All threads exit the operation mutex</li>
           </ol>
 				</section>
@@ -544,13 +544,13 @@ worker-10: Operation 'reload' is holding the mutex, waiting...
 
 
 				<section>
-          <h2>How can we make threads more polite?</h2>
+          <h2>How can we make threads politer?</h2>
 				</section>
 
 
 				<section>
           <h2>Making threads polite</h2>
-          <p>When a thread enter the operation mutex, take a little nap, letting other threads in</p>
+          <p>When a thread enters the operation mutex, take a little nap, letting other threads in</p>
 				</section>
 
 
@@ -597,7 +597,7 @@ worker-00: Operation 'invalidate' is holding the mutex, waiting...
 
 				<section>
           <h2>Are we done?</h2>
-          <p>Need to sleep on it more...</p>
+          <p>Need to sleep on it a bit more...</p>
 				</section>
 
 
@@ -630,8 +630,8 @@ worker-00: Operation 'invalidate' is holding the mutex, waiting...
 				<section>
           <h2>Patches are welcome</h2>
           <ul style="list-style: none; margin: 0; text-align: center">
-            <li><a href="https://github.com/ovirt/">https://github.com/ovirt/</a></li>
-            <li><a href="https://github.com/nirs/let-me-sleep-on-it/">https://github.com/nirs/let-me-sleep-on-it</a></li>
+            <li><a href="https://github.com/ovirt">https://github.com/ovirt</a></li>
+            <li><a href="https://github.com/nirs/let-me-sleep-on-it">https://github.com/nirs/let-me-sleep-on-it</a></li>
           </ul>
 				</section>
 
