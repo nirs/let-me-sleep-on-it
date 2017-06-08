@@ -367,9 +367,9 @@ def run_threads(func, count):
 
           <section>
             <h3>Test pass!</h3>
-            <pre style="width: 100%"><code class="hljs nohighlight" data-trim>
-opmutex_test.py::test_same_operation PASSED
-            </code></pre>
+            <ul style="list-style: none; margin: 0; font-size: 0.7em; font-family: monospace">
+              <li>opmutex_test.py::test_same_operation <span style="color: green">PASSED</span></li>
+            </ul>
           </section>
 
           <section>
@@ -437,19 +437,19 @@ def test_refresh_flow(run):
 
           <section>
             <h3>Failing tests are good</h3>
-            <pre style="font-size: 0.50em"><code data-trim>
-opmutex_test.py::test_same_operation PASSED
-opmutex_test.py::test_refresh_flow[0] FAILED
-opmutex_test.py::test_refresh_flow[1] PASSED
-opmutex_test.py::test_refresh_flow[2] PASSED
-opmutex_test.py::test_refresh_flow[3] PASSED
-opmutex_test.py::test_refresh_flow[4] PASSED
-opmutex_test.py::test_refresh_flow[5] FAILED
-opmutex_test.py::test_refresh_flow[6] PASSED
-opmutex_test.py::test_refresh_flow[7] FAILED
-opmutex_test.py::test_refresh_flow[8] PASSED
-opmutex_test.py::test_refresh_flow[9] FAILED
-            </code></pre>
+            <ul style="list-style: none; margin: 0; font-size: 0.7em; font-family: monospace">
+              <li>opmutex_test.py::test_same_operation <span style="color: green">PASSED</span></li>
+              <li>opmutex_test.py::test_refresh_flow[0] <span style="color: red">FAILED</span></li>
+              <li>opmutex_test.py::test_refresh_flow[1] <span style="color: green">PASSED</span></li>
+              <li>opmutex_test.py::test_refresh_flow[2] <span style="color: green">PASSED</span></li>
+              <li>opmutex_test.py::test_refresh_flow[3] <span style="color: green">PASSED</span></li>
+              <li>opmutex_test.py::test_refresh_flow[4] <span style="color: green">PASSED</span></li>
+              <li>opmutex_test.py::test_refresh_flow[5] <span style="color: red">FAILED</span></li>
+              <li>opmutex_test.py::test_refresh_flow[6] <span style="color: green">PASSED</span></li>
+              <li>opmutex_test.py::test_refresh_flow[7] <span style="color: red">FAILED</span></li>
+              <li>opmutex_test.py::test_refresh_flow[8] <span style="color: green">PASSED</span></li>
+              <li>opmutex_test.py::test_refresh_flow[9] <span style="color: red">FAILED</span></li>
+            </ul>
           </section>
 
           <section>
