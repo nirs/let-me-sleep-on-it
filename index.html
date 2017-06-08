@@ -457,21 +457,21 @@ def test_refresh_flow(run):
 
           <section>
             <h3>Test failure log</h3>
-            <pre style="font-size: 0.50em; witdh: 80%"><code data-trim>
-worker-00: Operation 'invalidate' acquired the mutex
-worker-00: Operation 'invalidate' released the mutex
-worker-00: Operation 'reload' acquired the mutex
-worker-01: Operation 'reload' is holding the mutex, waiting...
-worker-02: Operation 'reload' is holding the mutex, waiting...
-worker-03: Operation 'reload' is holding the mutex, waiting...
-worker-04: Operation 'reload' is holding the mutex, waiting...
-worker-05: Operation 'reload' is holding the mutex, waiting...
-worker-06: Operation 'reload' is holding the mutex, waiting...
-worker-07: Operation 'reload' is holding the mutex, waiting...
-worker-08: Operation 'reload' is holding the mutex, waiting...
-worker-09: Operation 'reload' is holding the mutex, waiting...
-worker-10: Operation 'reload' is holding the mutex, waiting...
-            </code></pre>
+            <ul style="list-style: none; margin: 0; font-size: 0.5em; font-family: monospace">
+              <li style="color: darkblue">worker-00: Operation 'invalidate' acquired the mutex</li>
+              <li style="color: darkblue">worker-00: Operation 'invalidate' released the mutex</li>
+              <li style="color: darkgreen">worker-00: Operation 'reload' acquired the mutex</li>
+              <li style="color: darkblue">worker-01: Operation 'reload' is holding the mutex, waiting...</li>
+              <li style="color: darkblue">worker-02: Operation 'reload' is holding the mutex, waiting...</li>
+              <li style="color: darkblue">worker-03: Operation 'reload' is holding the mutex, waiting...</li>
+              <li style="color: darkblue">worker-04: Operation 'reload' is holding the mutex, waiting...</li>
+              <li style="color: darkblue">worker-05: Operation 'reload' is holding the mutex, waiting...</li>
+              <li style="color: darkblue">worker-06: Operation 'reload' is holding the mutex, waiting...</li>
+              <li style="color: darkblue">worker-07: Operation 'reload' is holding the mutex, waiting...</li>
+              <li style="color: darkblue">worker-08: Operation 'reload' is holding the mutex, waiting...</li>
+              <li style="color: darkblue">worker-09: Operation 'reload' is holding the mutex, waiting...</li>
+              <li style="color: darkblue">worker-10: Operation 'reload' is holding the mutex, waiting...</li>
+            </ul>
           </section>
 
           <section>
