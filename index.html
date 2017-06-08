@@ -85,45 +85,7 @@ Py_END_ALLOW_THREADS
 
           <section>
             <h3>Sequential code is easy</h3>
-            <p>Complex flows are easy and clear when you can write sequential
-            code </p>
-          </section>
-
-          <section>
-            <h3>Sequential error handling is safe</h3>
-            <pre style="width: 100%"><code class="Python" data-trim>
-try:
-    complex_flow()
-except:
-    handle_it()
-finally:
-    cleanup()
-            </code></pre>
-          </section>
-
-          <section>
-            <h3>Context managers are great</h3>
-            <pre style="width: 100%"><code class="Python" data-trim>
-with cleanup():
-    complex_flow()
-            </code></pre>
-          </section>
-
-          <section>
-            <h3>Generators are awesome</h3>
-            <pre style="width: 100%"><code class="Python" data-trim>
-with line in file:
-    handle(line)
-            </code></pre>
-          </section>
-
-          <section>
-            <h3>No callback hell</h3>
-            <ul style="list-style: none; margin: 0; text-align: center">
-              <li>No promise hell</li>
-              <li>No yield from hell</li>
-              <li>No async await hell</li>
-            </ul>
+            <p>When using threads, you can write simple and clear code, as if you are the only one running</p>
           </section>
 
         </section>
