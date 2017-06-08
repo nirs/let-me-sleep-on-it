@@ -375,16 +375,16 @@ def run_threads(func, count):
           <section>
             <h3>Refresh LVM cache flow</h3>
             <ol>
-              <li>Invalidate VG cache</li>
-              <li>Reload VG cache</li>
+              <li class="fragment" style="color: darkblue">Invalidate VG cache</li>
+              <li class="fragment" style="color: darkgreen">Reload VG cache</li>
             </ol>
           </section>
 
           <section>
             <h3>Time matters</h3>
             <ol>
-              <li>Invalidate takes no time - updates a dict</li>
-              <li>Reload takes several seconds - goes to storage</li>
+              <li class="fragment" style="color: darkblue">Invalidate updates a dict - microseconds</li>
+              <li class="fragment" style="color: darkgreen">Reload goes to storage - seconds</li>
             </ol>
           </section>
 
