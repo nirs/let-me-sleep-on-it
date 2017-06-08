@@ -18,7 +18,7 @@ class OperationMutex(object):
         self._acquire(operation)
         try:
             # Give other threads chance to get in.
-            time.sleep(0.005)
+            time.sleep(0.01)
             yield self
         finally:
             self._release()
