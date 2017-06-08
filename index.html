@@ -536,21 +536,21 @@ def test_refresh_flow(run):
 
           <section>
             <h3>Fixed test log</h3>
-            <pre style="font-size: 0.50em; width: 100%"><code data-trim>
-worker-00: Operation 'invalidate' acquired the mutex
-worker-01: Operation 'invalidate' entered the mutex
-worker-02: Operation 'invalidate' entered the mutex
-worker-03: Operation 'invalidate' entered the mutex
-worker-04: Operation 'invalidate' entered the mutex
-worker-05: Operation 'invalidate' entered the mutex
-worker-06: Operation 'invalidate' entered the mutex
-worker-00: Operation 'invalidate' exited the mutex
-worker-07: Operation 'invalidate' entered the mutex
-worker-01: Operation 'invalidate' exited the mutex
-worker-02: Operation 'invalidate' exited the mutex
-worker-00: Operation 'invalidate' is holding the mutex, waiting...
-...
-            </code></pre>
+            <ul style="list-style: none; margin: 0; font-size: 0.5em; font-family: monospace">
+              <li class="invalidate">worker-00: Operation 'invalidate' acquired the mutex</li>
+              <li class="invalidate">worker-01: Operation 'invalidate' entered the mutex</li>
+              <li class="invalidate">worker-02: Operation 'invalidate' entered the mutex</li>
+              <li class="invalidate">worker-03: Operation 'invalidate' entered the mutex</li>
+              <li class="invalidate">worker-04: Operation 'invalidate' entered the mutex</li>
+              <li class="invalidate">worker-05: Operation 'invalidate' entered the mutex</li>
+              <li class="invalidate">worker-06: Operation 'invalidate' entered the mutex</li>
+              <li class="invalidate">worker-00: Operation 'invalidate' exited the mutex</li>
+              <li class="invalidate">worker-07: Operation 'invalidate' entered the mutex</li>
+              <li class="invalidate">worker-01: Operation 'invalidate' exited the mutex</li>
+              <li class="reload">worker-00: Operation 'invalidate' is holding the mutex, waiting...</li>
+              <li class="invalidate">worker-02: Operation 'invalidate' exited the mutex</li>
+              <li>...</li>
+            </ul>
           </section>
 
           <section>
