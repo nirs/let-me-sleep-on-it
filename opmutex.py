@@ -48,5 +48,5 @@ class OperationMutex(object):
                 self._operation = None
                 self._cond.notify_all()
             else:
-                log.debug("Operation %r existed the mutex",
+                log.debug("Operation %r exited the mutex",
                           self._operation)

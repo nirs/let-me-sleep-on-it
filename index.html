@@ -288,7 +288,7 @@ class OperationMutex(object):
                 self._operation = None
                 self._cond.notify_all()
             else:
-                log.debug("Operation %r existed the mutex",
+                log.debug("Operation %r exited the mutex",
                           self._operation)
             </code></pre>
           </section>
@@ -570,10 +570,10 @@ worker-03: Operation 'invalidate' entered the mutex
 worker-04: Operation 'invalidate' entered the mutex
 worker-05: Operation 'invalidate' entered the mutex
 worker-06: Operation 'invalidate' entered the mutex
-worker-00: Operation 'invalidate' existed the mutex
+worker-00: Operation 'invalidate' exited the mutex
 worker-07: Operation 'invalidate' entered the mutex
-worker-01: Operation 'invalidate' existed the mutex
-worker-02: Operation 'invalidate' existed the mutex
+worker-01: Operation 'invalidate' exited the mutex
+worker-02: Operation 'invalidate' exited the mutex
 worker-00: Operation 'invalidate' is holding the mutex, waiting...
 ...
             </code></pre>
