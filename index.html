@@ -557,18 +557,32 @@ def test_refresh_flow(run):
             <h3>Fix available in ovirt-3.6</h3>
           </section>
 
+        </section>
+
+        <section>
+
           <section>
-            <h3>Are we done?</h3>
-            <p>Need to sleep on it a bit more...</p>
+            <h2>Are we done?</h2>
           </section>
 
           <section>
             <h3>Why do we need the operation mutex?</h3>
+            <p>Need to sleep on it little bit more...</p>
           </section>
 
           <section>
             <h3>We don't</h3>
-            <p>OperationMutex was removed in ovirt-4.0</p>
+            <ul style="list-style: none; margin: 0; text-align: center; font-size: 0.85em">
+              <li class="fragment">No need to separate invalidate and reload operations</li>
+              <li class="fragment">Multiple threads modifying the cache is not thread safe</li>
+              <li class="fragment">The real problem is monitor thread isolation</li>
+              <li class="fragment">Monitor threads should refresh LVM cache</li>
+            </ul>
+          </section>
+
+          <section>
+            <h3>Operation Mutex was removed in ovirt-4.0</h3>
+            <p>More on this in my PyCon Israel 2018 talk</p>
           </section>
 
           <section>
