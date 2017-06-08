@@ -235,18 +235,12 @@ class OperationMutex(object):
     def _acquire(self, operation):
         with self._cond:
             while self._operation not in (operation, None):
-                log.debug("Operation %r is holding the "
-                          "mutex, waiting...", self._operation)
                 self._cond.wait()
-            if self._operation == operation:
-                log.debug("Operation %r entered the mutex",
-                          operation)
-            else:
-                log.debug("Operation %r acquired the mutex",
-                          operation)
+            if self._operation is None:
                 self._operation = operation
             self._holders += 1
             </code></pre>
+            <p><small>(Logging removed)</small></p>
           </section>
 
           <section>
@@ -256,14 +250,10 @@ class OperationMutex(object):
         with self._cond:
             self._holders -= 1
             if self._holders == 0:
-                log.debug("Operation %r released the mutex",
-                          self._operation)
                 self._operation = None
                 self._cond.notify_all()
-            else:
-                log.debug("Operation %r exited the mutex",
-                          self._operation)
             </code></pre>
+            <p><small>(Logging removed)</small></p>
           </section>
 
           <section>
