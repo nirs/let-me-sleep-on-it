@@ -198,6 +198,18 @@ class LVMCache(object):
           </section>
 
           <section>
+            <h3>How Operation Mutex should work</h3>
+            <ol style="font-size: 0.85em">
+              <li class="fragment" style="color: darkblue">Thread-1 acquires the mutex for <strong>invalidate</strong> operation</li>
+              <li class="fragment" style="color: darkblue">Thread-2 enters the mutex for <strong>invalidate</strong> operation</li>
+              <li class="fragment" style="color: darkgreen">Thread-3 tries to acquire the mutex for <strong>reload</strong> operation, waiting...</li>
+              <li class="fragment" style="color: darkblue">Thread-1 exits the mutex</li>
+              <li class="fragment" style="color: darkblue">Thread-2 exits and release the mutex</li>
+              <li class="fragment" style="color: darkgreen">Thread-3 wakes up and acquires the mutex for <strong>reload</strong> operation</li>
+            </ol>
+          </section>
+
+          <section>
             <h3>Operation Mutex [1/3]</h3>
             <pre style="width: 100%"><code class="Python" data-trim>
 class OperationMutex(object):
