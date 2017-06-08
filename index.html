@@ -26,6 +26,13 @@
 			document.getElementsByTagName( 'head' )[0].appendChild( link );
 		</script>
 
+    <style>
+      .invalidate { color: darkblue; }
+      .reload { color: darkgreen; }
+      .passed { color: green; }
+      .failed { color: red; }
+    </style>
+
 		<!--[if lt IE 9]>
 		<script src="lib/js/html5shiv.js"></script>
 		<![endif]-->
@@ -170,9 +177,9 @@ D+   dd if=/dev/zero of=mnt/test bs=8M count=1280 oflag=direct
           <section>
             <h3>LVM cache uses fancy locking</h3>
             <ul style="list-style: none; margin: 0; text-align: center; font-size: 0.85em">
-              <li class="fragment" style="color: darkblue">Multiple threads can <strong>invalidate</strong> the cache in the same time</li>
-              <li class="fragment" style="color: darkgreen">Multiple threads can <strong>reload</strong> the cache in the same time</li>
-              <li class="fragment" style="color: darkred"><strong>Invalidate</strong> and <strong>reload</strong> cannot run in the same time</li>
+              <li class="fragment invalidate">Multiple threads can <strong>invalidate</strong> the cache in the same time</li>
+              <li class="fragment reload">Multiple threads can <strong>reload</strong> the cache in the same time</li>
+              <li class="fragment"><strong>Invalidate</strong> and <strong>reload</strong> cannot run in the same time</li>
             </ul>
           </section>
 
@@ -200,12 +207,12 @@ class LVMCache(object):
           <section>
             <h3>How Operation Mutex works</h3>
             <ol style="font-size: 0.85em">
-              <li class="fragment" style="color: darkblue">Thread-1 acquires the mutex for <strong>invalidate</strong> operation</li>
-              <li class="fragment" style="color: darkgreen">Thread-2 tries to acquire the mutex for <strong>reload</strong> operation, waiting...</li>
-              <li class="fragment" style="color: darkblue">Thread-3 enters the mutex for <strong>invalidate</strong> operation</li>
-              <li class="fragment" style="color: darkblue">Thread-1 exits the mutex</li>
-              <li class="fragment" style="color: darkblue">Thread-3 exits and release the mutex</li>
-              <li class="fragment" style="color: darkgreen">Thread-2 wakes up and acquires the mutex for <strong>reload</strong> operation</li>
+              <li class="fragment invalidate">Thread-1 acquires the mutex for <strong>invalidate</strong> operation</li>
+              <li class="fragment reload">Thread-2 tries to acquire the mutex for <strong>reload</strong> operation, waiting...</li>
+              <li class="fragment invalidate">Thread-3 enters the mutex for <strong>invalidate</strong> operation</li>
+              <li class="fragment invalidate">Thread-1 exits the mutex</li>
+              <li class="fragment invalidate">Thread-3 exits and release the mutex</li>
+              <li class="fragment reload">Thread-2 wakes up and acquires the mutex for <strong>reload</strong> operation</li>
             </ol>
           </section>
 
@@ -259,22 +266,22 @@ class OperationMutex(object):
           <section>
             <h3>Operation Mutex in practice</h3>
             <ul style="list-style: none; margin: 0; padding: 0.5em; font-size: 0.5em; font-family: monospace">
-              <li style="color: darkblue">(_invalidate_lvs) 'lvm reload' is holding the mutex, waiting...</li>
-              <li style="color: darkgreen">(_reload_vgs) 'lvm reload' is holding the mutex, waiting...</li>
-              <li style="color: darkblue">(_invalidate_lvs) 'lvm reload' is holding the mutex, waiting...</li>
-              <li style="color: darkblue">(_invalidate_lvs) 'lvm reload' is holding the mutex, waiting...</li>
-              <li style="color: darkgreen">(_reload_vgs) 'lvm reload' is holding the mutex, waiting...</li>
-              <li style="color: darkblue">(_invalidate_lvs) 'lvm reload' is holding the mutex, waiting...</li>
-              <li style="color: darkgreen">(_reload_vgs) 'lvm reload' is holding the mutex, waiting...</li>
-              <li style="color: darkblue">(_invalidate_lvs) 'lvm reload' is holding the mutex, waiting...</li>
-              <li style="color: darkblue">(_invalidate_lvs) 'lvm reload' is holding the mutex, waiting...</li>
-              <li style="color: darkblue">(_invalidate_lvs) 'lvm reload' is holding the mutex, waiting...</li>
-              <li style="color: darkblue">(_invalidate_lvs) 'lvm reload' is holding the mutex, waiting...</li>
-              <li style="color: darkblue">(_invalidate_lvs) 'lvm reload' is holding the mutex, waiting...</li>
-              <li style="color: darkblue">(_invalidate_lvs) 'lvm reload' is holding the mutex, waiting...</li>
-              <li style="color: darkblue">(_invalidate_lvs) 'lvm reload' is holding the mutex, waiting...</li>
-              <li style="color: darkblue">(_invalidate_lvs) 'lvm reload' is holding the mutex, waiting...</li>
-              <li style="color: darkblue">(_invalidate_lvs) 'lvm reload' is holding the mutex, waiting...</li>
+              <li class="invalidate">(_invalidate_lvs) 'lvm reload' is holding the mutex, waiting...</li>
+              <li class="reload">(_reload_vgs) 'lvm reload' is holding the mutex, waiting...</li>
+              <li class="invalidate">(_invalidate_lvs) 'lvm reload' is holding the mutex, waiting...</li>
+              <li class="invalidate">(_invalidate_lvs) 'lvm reload' is holding the mutex, waiting...</li>
+              <li class="reload">(_reload_vgs) 'lvm reload' is holding the mutex, waiting...</li>
+              <li class="invalidate">(_invalidate_lvs) 'lvm reload' is holding the mutex, waiting...</li>
+              <li class="reload">(_reload_vgs) 'lvm reload' is holding the mutex, waiting...</li>
+              <li class="invalidate">(_invalidate_lvs) 'lvm reload' is holding the mutex, waiting...</li>
+              <li class="invalidate">(_invalidate_lvs) 'lvm reload' is holding the mutex, waiting...</li>
+              <li class="invalidate">(_invalidate_lvs) 'lvm reload' is holding the mutex, waiting...</li>
+              <li class="invalidate">(_invalidate_lvs) 'lvm reload' is holding the mutex, waiting...</li>
+              <li class="invalidate">(_invalidate_lvs) 'lvm reload' is holding the mutex, waiting...</li>
+              <li class="invalidate">(_invalidate_lvs) 'lvm reload' is holding the mutex, waiting...</li>
+              <li class="invalidate">(_invalidate_lvs) 'lvm reload' is holding the mutex, waiting...</li>
+              <li class="invalidate">(_invalidate_lvs) 'lvm reload' is holding the mutex, waiting...</li>
+              <li class="invalidate">(_invalidate_lvs) 'lvm reload' is holding the mutex, waiting...</li>
             </ul>
             <p>
             <small>(Simplified, colored)</small>
@@ -368,23 +375,23 @@ def run_threads(func, count):
           <section>
             <h3>Test pass!</h3>
             <ul style="list-style: none; margin: 0; font-size: 0.7em; font-family: monospace">
-              <li>opmutex_test.py::test_same_operation <span style="color: green">PASSED</span></li>
+              <li>opmutex_test.py::test_same_operation <span class="passed">PASSED</span></li>
             </ul>
           </section>
 
           <section>
             <h3>Refresh LVM cache flow</h3>
             <ol>
-              <li class="fragment" style="color: darkblue">Invalidate VG cache</li>
-              <li class="fragment" style="color: darkgreen">Reload VG cache</li>
+              <li class="fragment invalidate">Invalidate VG cache</li>
+              <li class="fragment reload">Reload VG cache</li>
             </ol>
           </section>
 
           <section>
             <h3>Time matters</h3>
             <ol>
-              <li class="fragment" style="color: darkblue">Invalidate updates a dict - microseconds</li>
-              <li class="fragment" style="color: darkgreen">Reload goes to storage - seconds</li>
+              <li class="fragment invalidate">Invalidate updates a dict - microseconds</li>
+              <li class="fragment reload">Reload goes to storage - seconds</li>
             </ol>
           </section>
 
@@ -441,65 +448,65 @@ def test_refresh_flow(run):
           <section>
             <h3>Failing tests are good</h3>
             <ul style="list-style: none; margin: 0; font-size: 0.7em; font-family: monospace">
-              <li>opmutex_test.py::test_same_operation <span style="color: green">PASSED</span></li>
-              <li>opmutex_test.py::test_refresh_flow[0] <span style="color: red">FAILED</span></li>
-              <li>opmutex_test.py::test_refresh_flow[1] <span style="color: green">PASSED</span></li>
-              <li>opmutex_test.py::test_refresh_flow[2] <span style="color: green">PASSED</span></li>
-              <li>opmutex_test.py::test_refresh_flow[3] <span style="color: green">PASSED</span></li>
-              <li>opmutex_test.py::test_refresh_flow[4] <span style="color: green">PASSED</span></li>
-              <li>opmutex_test.py::test_refresh_flow[5] <span style="color: red">FAILED</span></li>
-              <li>opmutex_test.py::test_refresh_flow[6] <span style="color: green">PASSED</span></li>
-              <li>opmutex_test.py::test_refresh_flow[7] <span style="color: red">FAILED</span></li>
-              <li>opmutex_test.py::test_refresh_flow[8] <span style="color: green">PASSED</span></li>
-              <li>opmutex_test.py::test_refresh_flow[9] <span style="color: red">FAILED</span></li>
+              <li>opmutex_test.py::test_same_operation <span class="passed">PASSED</span></li>
+              <li>opmutex_test.py::test_refresh_flow[0] <span class="failed">FAILED</span></li>
+              <li>opmutex_test.py::test_refresh_flow[1] <span class="passed">PASSED</span></li>
+              <li>opmutex_test.py::test_refresh_flow[2] <span class="passed">PASSED</span></li>
+              <li>opmutex_test.py::test_refresh_flow[3] <span class="passed">PASSED</span></li>
+              <li>opmutex_test.py::test_refresh_flow[4] <span class="passed">PASSED</span></li>
+              <li>opmutex_test.py::test_refresh_flow[5] <span class="failed">FAILED</span></li>
+              <li>opmutex_test.py::test_refresh_flow[6] <span class="passed">PASSED</span></li>
+              <li>opmutex_test.py::test_refresh_flow[7] <span class="failed">FAILED</span></li>
+              <li>opmutex_test.py::test_refresh_flow[8] <span class="passed">PASSED</span></li>
+              <li>opmutex_test.py::test_refresh_flow[9] <span class="failed">FAILED</span></li>
             </ul>
           </section>
 
           <section>
             <h3>Test failure log</h3>
             <ul style="list-style: none; margin: 0; font-size: 0.5em; font-family: monospace">
-              <li style="color: darkblue">worker-00: Operation 'invalidate' acquired the mutex</li>
-              <li style="color: darkblue">worker-00: Operation 'invalidate' released the mutex</li>
-              <li style="color: darkgreen">worker-00: Operation 'reload' acquired the mutex</li>
-              <li style="color: darkblue">worker-01: Operation 'reload' is holding the mutex, waiting...</li>
-              <li style="color: darkblue">worker-02: Operation 'reload' is holding the mutex, waiting...</li>
-              <li style="color: darkblue">worker-03: Operation 'reload' is holding the mutex, waiting...</li>
-              <li style="color: darkblue">worker-04: Operation 'reload' is holding the mutex, waiting...</li>
-              <li style="color: darkblue">worker-05: Operation 'reload' is holding the mutex, waiting...</li>
-              <li style="color: darkblue">worker-06: Operation 'reload' is holding the mutex, waiting...</li>
-              <li style="color: darkblue">worker-07: Operation 'reload' is holding the mutex, waiting...</li>
-              <li style="color: darkblue">worker-08: Operation 'reload' is holding the mutex, waiting...</li>
-              <li style="color: darkblue">worker-09: Operation 'reload' is holding the mutex, waiting...</li>
-              <li style="color: darkblue">worker-10: Operation 'reload' is holding the mutex, waiting...</li>
+              <li class="invalidate">worker-00: Operation 'invalidate' acquired the mutex</li>
+              <li class="invalidate">worker-00: Operation 'invalidate' released the mutex</li>
+              <li class="reload">worker-00: Operation 'reload' acquired the mutex</li>
+              <li class="invalidate">worker-01: Operation 'reload' is holding the mutex, waiting...</li>
+              <li class="invalidate">worker-02: Operation 'reload' is holding the mutex, waiting...</li>
+              <li class="invalidate">worker-03: Operation 'reload' is holding the mutex, waiting...</li>
+              <li class="invalidate">worker-04: Operation 'reload' is holding the mutex, waiting...</li>
+              <li class="invalidate">worker-05: Operation 'reload' is holding the mutex, waiting...</li>
+              <li class="invalidate">worker-06: Operation 'reload' is holding the mutex, waiting...</li>
+              <li class="invalidate">worker-07: Operation 'reload' is holding the mutex, waiting...</li>
+              <li class="invalidate">worker-08: Operation 'reload' is holding the mutex, waiting...</li>
+              <li class="invalidate">worker-09: Operation 'reload' is holding the mutex, waiting...</li>
+              <li class="invalidate">worker-10: Operation 'reload' is holding the mutex, waiting...</li>
             </ul>
           </section>
 
           <section>
             <h3>Why does it fail?</h3>
-            <ol>
-              <li>Thread 0 acquires the GIL</li>
-              <li>Thread 0 acquires the operation mutex</li>
-              <li>Other threads could acquire the operation mutex, but thread 0 is holding the GIL</li>
-              <li>Thread 0 releases the operation mutex</li>
-              <li>Thread 0 acquires the operation mutex again</li>
-              <li>Thread 0 releases the GIL during sleep</li>
-              <li>Other threads cannot acquire the operation mutex, waiting...</li>
+            <ol style="font-size: 0.85em">
+              <li class="fragment invalidate">worker-00 acquires the GIL</li>
+              <li class="fragment invalidate">worker-00 acquires the operation mutex for <strong>invalidate</strong> operation</li>
+              <li class="fragment invalidate">Other workers could enter the operation mutex, but worker-00 is holding the GIL...</li>
+              <li class="fragment invalidate">worker-00 releases the operation mutex</li>
+              <li class="fragment reload">worker-00 acquires the operation mutex again for <strong>reload</strong> operation</li>
+              <li class="fragment reload">worker-00 releases the GIL during during sleep</li>
+              <li class="fragment invalidate">Other workers cannot enter the operation mutex, waiting...</li>
             </ol>
           </section>
 
           <section>
             <h3>How should it work</h3>
-            <ol>
-              <li>All threads enter the operation mutex for "invalidate" operation</li>
-              <li>All threads exit the operation mutex</li>
-              <li>All threads enter the operation mutex for "reload" operation</li>
-              <li>All threads exit the operation mutex</li>
+            <ol style="font-size: 0.85em">
+              <li class="fragment invalidate">All workers enter the operation mutex for <strong>invalidate</strong> operation</li>
+              <li class="fragment invalidate">All workers exit the operation mutex</li>
+              <li class="fragment reload">All workers enter the operation mutex for <strong>reload</strong> operation</li>
+              <li class="fragment reload">All workers exit the operation mutex</li>
             </ol>
           </section>
 
           <section>
             <h3>Can we fix it?</h3>
-            <p>Need to sleep on it</p>
+            <p>Need to sleep on it...</p>
           </section>
 
           <section>
