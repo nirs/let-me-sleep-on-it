@@ -184,9 +184,9 @@ D+   dd if=/dev/zero of=mnt/test bs=8M count=1280 oflag=direct
           <section>
             <h3>LVM cache uses fancy locking</h3>
             <ul style="list-style: none; margin: 0; text-align: center; font-size: 0.85em">
-              <li class="fragment invalidate">Multiple threads can <strong>invalidate</strong> the cache in the same time</li>
-              <li class="fragment reload">Multiple threads can <strong>reload</strong> the cache in the same time</li>
-              <li class="fragment"><strong>Invalidate</strong> and <strong>reload</strong> cannot run in the same time</li>
+              <li class="fragment invalidate">Multiple threads can <strong>invalidate</strong> the cache at the same time</li>
+              <li class="fragment reload">Multiple threads can <strong>reload</strong> the cache at the same time</li>
+              <li class="fragment"><strong>Invalidate</strong> and <strong>reload</strong> cannot run at the same time</li>
             </ul>
           </section>
 
@@ -214,12 +214,12 @@ class LVMCache(object):
           <section>
             <h3>How Operation Mutex works</h3>
             <ol style="font-size: 0.85em">
-              <li class="fragment invalidate">Thread-1 acquires the mutex for <strong>invalidate</strong> operation</li>
-              <li class="fragment reload">Thread-2 tries to acquire the mutex for <strong>reload</strong> operation, waiting...</li>
-              <li class="fragment invalidate">Thread-3 enters the mutex for <strong>invalidate</strong> operation</li>
+              <li class="fragment invalidate">Thread-1 acquires the mutex for an <strong>invalidate</strong> operation</li>
+              <li class="fragment reload">Thread-2 tries to acquire the mutex for a <strong>reload</strong> operation, waiting...</li>
+              <li class="fragment invalidate">Thread-3 enters the mutex for an <strong>invalidate</strong> operation</li>
               <li class="fragment invalidate">Thread-1 exits the mutex</li>
               <li class="fragment invalidate">Thread-3 exits and release the mutex</li>
-              <li class="fragment reload">Thread-2 wakes up and acquires the mutex for <strong>reload</strong> operation</li>
+              <li class="fragment reload">Thread-2 wakes up and acquires the mutex for a <strong>reload</strong> operation</li>
             </ol>
           </section>
 
@@ -299,14 +299,14 @@ class OperationMutex(object):
             <h3>We have a problem</h3>
             <ul class="items">
               <li>Too many threads waiting...<li>
-              <li>Most of the time only one thread inside the operation mutex</li>
+              <li>Most of the time only one thread is inside the operation mutex</li>
             </ul>
           </section>
 
           <section>
             <h3>Operation mutex is harmful</h3>
             <ul class="items">
-              <li>Lot of storage domains...</li>
+              <li>Lots of storage domains...</li>
               <li>Storage is overloaded...</li>
               <li>LVM commands become slow...</li>
               <li>Monitor threads waiting...</li>
@@ -380,7 +380,7 @@ def run_threads(func, count):
           </section>
 
           <section>
-            <h3>Test pass!</h3>
+            <h3>Test passes!</h3>
             <ul class="tests">
               <li>opmutex_test.py::test_same_operation <span class="passed">PASSED</span></li>
             </ul>
@@ -492,10 +492,10 @@ def test_refresh_flow(run):
             <h3>Why does it fail?</h3>
             <ol style="font-size: 0.85em">
               <li class="fragment invalidate">worker-00 acquires the GIL</li>
-              <li class="fragment invalidate">worker-00 acquires the operation mutex for <strong>invalidate</strong> operation</li>
+              <li class="fragment invalidate">worker-00 acquires the operation mutex for an <strong>invalidate</strong> operation</li>
               <li class="fragment invalidate">Other workers could enter the operation mutex, but worker-00 is holding the GIL...</li>
               <li class="fragment invalidate">worker-00 releases the operation mutex</li>
-              <li class="fragment reload">worker-00 acquires the operation mutex again for <strong>reload</strong> operation</li>
+              <li class="fragment reload">worker-00 acquires the operation mutex again for a <strong>reload</strong> operation</li>
               <li class="fragment reload">worker-00 releases the GIL during during sleep</li>
               <li class="fragment invalidate">Other workers cannot enter the operation mutex, waiting...</li>
             </ol>
@@ -504,9 +504,9 @@ def test_refresh_flow(run):
           <section>
             <h3>How should it work</h3>
             <ol style="font-size: 0.85em">
-              <li class="fragment invalidate">All workers enter the operation mutex for <strong>invalidate</strong> operation</li>
+              <li class="fragment invalidate">All workers enter the operation mutex for an <strong>invalidate</strong> operation</li>
               <li class="fragment invalidate">All workers exit the operation mutex</li>
-              <li class="fragment reload">All workers enter the operation mutex for <strong>reload</strong> operation</li>
+              <li class="fragment reload">All workers enter the operation mutex for a <strong>reload</strong> operation</li>
               <li class="fragment reload">All workers exit the operation mutex</li>
             </ol>
           </section>
