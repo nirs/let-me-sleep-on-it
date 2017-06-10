@@ -139,7 +139,11 @@ D+   dd if=/dev/zero of=mnt/test bs=8M count=1280 oflag=direct
 
           <section>
             <h3>Vdsm monitors storage</h3>
-            <p>Every storage domain has a dedicated thread - we can have 50 of these</p>
+            <ul class="items">
+              <li>Every storage domain has a dedicated thread</li>
+              <li>We can have 50 storage domains</li>
+            </ul>
+
           </section>
 
           <section>
@@ -148,7 +152,7 @@ D+   dd if=/dev/zero of=mnt/test bs=8M count=1280 oflag=direct
           </section>
 
           <section>
-            <h3>Monitor threads run LVM commands</h3>
+            <h3>Vdsm uses LVM</h3>
             <ul class="items">
               <li>Vdsm manages block storage using LVM</li>
               <li>Creates logical volumes for VM disks and snapshots</li>
