@@ -69,17 +69,34 @@ Tinkering with Python since 2003
 Free software enthusiast
 Father of two
           </code></pre>
+
+          <aside class="notes">
+            I have been tinkering with Python and contributing to many free
+            software projects about 14 years. In the last 4 years I'm working
+            for Red Hat on the oVirt project. I spend most of my time taming
+            the Vdsm beast.
+          </aside>
         </section>
 
         <section>
 
           <section>
             <h2>Python threads suck</h2>
+
+            <aside class="notes">
+              Everyone knows that Python threads sucks. Do you know why?
+            </aside>
           </section>
 
           <section>
             <h3>The GIL</h3>
             <p>The global interpretor lock will let only one thread run Python code at a time</p>
+
+            <aside class="notes">
+              Python global interpreter lock will let only one thread run
+              Python code at a time. Creating more threads will make your
+              program slower, and use more cpu time!
+            </aside>
           </section>
 
           <section>
@@ -90,16 +107,37 @@ n = read(fd, buf, count);
 Py_END_ALLOW_THREADS
             </code></pre>
             <p class="fragment">Python releases the GIL when possible</p>
+
+            <aside class="notes">
+              This piece of C code was taken from the Python interpreter. When
+              Python is invoking blocking system calls or other C code that
+              does not need to access Python internals, it releases the GIL.
+              While this thread is block on read(), other threads can run
+              Python code, or wait on other calls.
+            </aside>
           </section>
 
           <section>
             <h3>Python threads are useful</h3>
             <p>You can do I/O or wait for other programs concurrently</p>
+
+            <aside class="notes">
+              In the real world, any complex application is spending most of
+              the time waiting for I/O or for other programs. Threads are very
+              useful to run concurrent flows and are surprisingly efficient.
+            </aside>
           </section>
 
           <section>
             <h3>Sequential code is easy</h3>
             <p>When using threads, you can write simple and clear code, as if you are the only one running</p>
+
+            <aside class="notes">
+              When using threads, you can write simple and clear code. This
+              model is very easy to program, as if your code is the only code
+              running in the entire application. The trouble starts when you
+              have to access shared resources, more on that later...
+            </aside>
           </section>
 
         </section>
@@ -108,11 +146,22 @@ Py_END_ALLOW_THREADS
 
           <section>
             <h2>Vdsm uses lot of threads</h2>
+
+            <aside class="notes">
+              Vdsm is a big and complex Python program, using lots of threads.
+              We can have up to 150 threads, depending on the configuration.
+            </aside>
           </section>
 
           <section>
             <h3>What is Vdsm?</h3>
             <p>Vdsm manages virtual machines on a hypervisor</p>
+
+            <aside class="notes">
+              Vdsm is part of the oVirt management system. Vdsm is an agent
+              running on every hypervisor in your virtual data center. It is
+              managing virtual machines on the hypervisor.
+            </aside>
           </section>
 
           <section>
@@ -121,11 +170,28 @@ Py_END_ALLOW_THREADS
               <li>Vdsm provides storage for virtual machines<li>
               <li>Typically shared storage</li>
             </ul>
+
+            <aside class="notes">
+              <p>Virtual machines are not very useful without storage.</p>
+
+              <p>Vdsm provides storage to virtual machines</p>
+
+              <p>Typically storage is shared.</p>
+
+              <p>Why shared storage? When you separate storage from your
+              compute nodes, you can do magical stuff like move virtual
+              machines between compute nodes while they are running.</p>
+            </aside>
           </section>
 
           <section>
             <h3>Shared storage is extremely fast</h3>
             <p>Seen 750MiB/s writes using direct I/O to SSD disk array</p>
+
+            <aside class="notes">
+              Enterprize storage connected via fast network can be extremely
+              fast (and expensive).
+            </aside>
           </section>
 
           <section>
@@ -135,6 +201,13 @@ $ ps -p 32729 -o stat -o cmd
 STAT CMD
 D+   dd if=/dev/zero of=mnt/test bs=8M count=1280 oflag=direct
             </code></pre>
+
+            <aside class="notes">
+              <p>But shared storage can be also dead slow; In this example the
+              dd program is in D state, blocked on unresponsive storage.</p>
+
+              <p>In this state you cannot even kill it.</p>
+            </aside>
           </section>
 
           <section>
@@ -144,11 +217,28 @@ D+   dd if=/dev/zero of=mnt/test bs=8M count=1280 oflag=direct
               <li>We can have 50 storage domains</li>
             </ul>
 
+            <aside class="notes">
+              <p>To allow the oVirt system to be manage virtual machines in
+              the data center, Vdsm is monitoring storage health.</p>
+
+              <p>oVirt is separating storage to storage domains - a piece of
+              storage used for particular purpose.</p>
+
+              <p>We can have 50 storage domains on a hypervisor, and each of
+              them has a dedicated thread for monitoring.</p>
+            </aside>
           </section>
 
           <section>
             <h3>Monitor threads are isolated</h3>
             <p>If one thread gets stuck on unresponsive storage, other threads are not affected</p>
+
+            <aside class="notes">
+              <p>Why do we need separate thread for each storage domain?</p>
+
+              <p>If one storage domain becomes slow or even unresponsive, we
+              don't want to that unrelated storage domain will be affected.</p>
+            </aside>
           </section>
 
           <section>
@@ -157,11 +247,24 @@ D+   dd if=/dev/zero of=mnt/test bs=8M count=1280 oflag=direct
               <li>Vdsm manages block storage using LVM</li>
               <li>Creates logical volumes for VM disks and snapshots</li>
             </ul>
+
+            <aside class="notes">
+              <p>When using block storage (.e.g iSCSI or FC), oVirt is managing
+              the storage using LVM.</p>
+
+              <p>Vdsm creates LVM logical volumes for virtual machines disks
+              and snapshots.</p>
+            </aside>
           </section>
 
           <section>
             <h3>Accessing LVM metadata is slow</h3>
             <p>Vdsm caches LVM metadata</p>
+
+            <aside class="notes">
+              Accessing LVM metadata on shared storage can be slow when you
+              have a big setup, so Vdsm caches LVM metadata.
+            </aside>
           </section>
 
           <section>
@@ -170,11 +273,28 @@ D+   dd if=/dev/zero of=mnt/test bs=8M count=1280 oflag=direct
               <br>
               -- Phil Karlton
             </blockquote>
+
+            <aside class="notes">
+              <p>Vdsm has to invalidate the LVM metadata cache.</p>
+
+              <p>How do you invalidate the cache of 50 storage domains?.</p>
+            </aside>
           </section>
 
           <section>
             <h3>Monitor threads refresh LVM cache</h3>
             <p>Monitor threads invalidate the cache and run LVM commands to reload the cache</p>
+
+            <aside class="notes">
+              <p>Monitor threads invalidate LVM cache.</p>
+
+              <p>Every 5 minutes, monitor threads wake up, invalidate LVM cache,
+              and run LVM commands to reload the cache from storage.</p>
+
+              <p>Since every storage domain has its own dedicated monitoring
+              thread, if LVM command get stuck on unresponsive storage, it will
+              not affect other threads.</p>
+            </aside>
           </section>
 
         </section>
@@ -183,15 +303,12 @@ D+   dd if=/dev/zero of=mnt/test bs=8M count=1280 oflag=direct
 
           <section>
             <h2>Operation Mutex</h2>
-          </section>
 
-          <section>
-            <h3>LVM cache uses fancy locking</h3>
-            <ul style="list-style: none; margin: 0; text-align: center; font-size: 0.85em">
-              <li class="fragment invalidate">Multiple threads can <strong>invalidate</strong> the cache at the same time</li>
-              <li class="fragment reload">Multiple threads can <strong>reload</strong> the cache at the same time</li>
-              <li class="fragment"><strong>Invalidate</strong> and <strong>reload</strong> cannot run at the same time</li>
-            </ul>
+            <aside class="notes">
+              When 50 threads are trying to refresh LVM cache at the same time,
+              we have to synchronize them; we are using a special mutex called
+              OperationMutex.
+            </aside>
           </section>
 
           <section>
@@ -210,9 +327,47 @@ class LVMCache(object):
             for lv in self._parse_lvs(lvm_output):
                 self._lvs[(vg_name, lv_name)] = lv
             </code></pre>
-          <p>
-            <small>(Simplified)</small>
-          </p>
+            <p>
+              <small>(Simplified)</small>
+            </p>
+
+            <aside class="notes">
+              <p>This is a simplified fragment of code from the LVMCache class.</p>
+
+              <p>The cache keeps the logical volume data in a dict.</p>
+
+              <p>To invalidate the logical volumes cache, we lock the operation
+              mutex for LVM_OP_INVALIDATE (a string), and then iterate on the
+              cache entries and replace them with stubs.</p>
+
+              <p>To reload the logical volume cache, we lock the operation
+              mutex for LVM_OP_RELOAD, run lvm command to logical volumes
+              metadata from storage, parse it, and fill the cache with fresh
+              entries.</p>
+            </aside>
+          </section>
+
+          <section>
+            <h3>LVM cache uses fancy locking</h3>
+            <ul style="list-style: none; margin: 0; text-align: center; font-size: 0.85em">
+              <li class="fragment invalidate">Multiple threads can <strong>invalidate</strong> the cache at the same time</li>
+              <li class="fragment reload">Multiple threads can <strong>reload</strong> the cache at the same time</li>
+              <li class="fragment"><strong>Invalidate</strong> and <strong>reload</strong> cannot run at the same time</li>
+            </ul>
+
+            <aside class="notes">
+              <p>
+              If LVM cache was using a simple mutex, only one thread could
+              invalidate or reload the cache, this would be too slow with many
+              storage domains. To improve concurrency, we use a special lock
+              implementing these rules:
+              </p>
+              <ol>
+                <li>Multiple threads can invalidate the cache at the same time</li>
+                <li>Multiple threads can reload the cache at the same time</li>
+                <li>Invalidate and reload cannot run at the same time</li>
+              </ol>
+            </aside>
           </section>
 
           <section>
@@ -225,6 +380,38 @@ class LVMCache(object):
               <li class="fragment invalidate">Thread-3 exits and release the mutex</li>
               <li class="fragment reload">Thread-2 wakes up and acquires the mutex for a <strong>reload</strong> operation</li>
             </ol>
+
+            <aside class="notes">
+              <p>Let's see how the lock behaves during runtime.</p>
+              <ol>
+                <li>
+                  Thread-1 acquires the operation mutex for an invalidate
+                  operation.
+                </li>
+                <li>
+                  Thread-2 tries to acquire the operation mutex for a reload
+                  operation, but the operation mutex is locked for an
+                  invalidate operation, so this thread is waiting.
+                </li>
+                <li>
+                  Thread-3 enter the operation mutex for an invalidate
+                  operation
+                </li>
+                <li>
+                  Thread-1 finish the invalidate operation and exit from the
+                  operation mutex
+                </li>
+                <li>
+                  Thread-3 finish the invalidate operation and exit from the
+                  operation mutex. Because it was the last thread, it releases
+                  the operation mutex.
+                </li>
+                <li>
+                  Thread-2 wakes up, and acquires the operation mutex for
+                  reload operation.
+                </li>
+              </ol>
+            </aside>
           </section>
 
           <section>
@@ -245,6 +432,20 @@ class OperationMutex(object):
         finally:
             self._release()
             </code></pre>
+
+            <aside class="notes">
+              <p>The operation mutex uses a condition variable, the current
+              operation, and a counter for the number of threads holding the
+              mutex.</p>
+
+              <p>When initialized the mutex is unlocked, so the operation is
+              None and number of holders is 0.</p>
+
+              <p>To lock the operation mutex we use the locked() context
+              manager, acquiring the operation mutex for the requested
+              operation, and yielding so the caller can perform its task.
+              Finally, it releases the operation mutex.</p>
+            </aside>
           </section>
 
           <section>
@@ -259,6 +460,23 @@ class OperationMutex(object):
             self._holders += 1
             </code></pre>
             <p><small>(Logging removed)</small></p>
+
+            <aside class="notes">
+              <p>This is the private acquire method, with logging removed, to
+              make the code more clear.</p>
+
+              <p>First we use the condition variable to wait until the lock is
+              free or locked for the requested operation.</p>
+
+              <p>If we exit the loop and the self._operation is None, we are
+              the first thread for this operation, and we set the lock
+              operation. Now only threads that want to acquire this operation
+              can enter the lock, and other threads will wait on the condition
+              variable.</p>
+
+              <p>Finally we increase the number of holders, so we can release
+              the lock when the last thread exit.</p>
+            </aside>
           </section>
 
           <section>
@@ -272,6 +490,13 @@ class OperationMutex(object):
                 self._cond.notify_all()
             </code></pre>
             <p><small>(Logging removed)</small></p>
+
+            <aside class="notes">
+              <p>When we release the lock, we decrease the number of holders</p>
+
+              <p>If we are the last thread, we set the current operation to
+              None, and notify threads waiting on the condition variable.</p>
+            </aside>
           </section>
 
           <section>
@@ -297,6 +522,14 @@ class OperationMutex(object):
             <p>
             <small>(Simplified, colored)</small>
             </p>
+
+            <aside class="notes">
+              <p>This is a fragment from Vdsm log (simplifed and colored). The
+              logs for invalidate operations are in blue, and reload operation
+              are in green.</p>
+
+              <p>Do you see any problem in this log?</p>
+            </aside>
           </section>
 
           <section>
@@ -305,6 +538,17 @@ class OperationMutex(object):
               <li>Too many threads waiting...<li>
               <li>Most of the time only one thread is inside the operation mutex</li>
             </ul>
+
+            <aside class="notes">
+              <p>I have seen hundreds of megabytes of logs, and the picture is
+              clear.</p>
+
+              <p>Most of the time, only one thread is inside the operation mutex.</p>
+
+              <p>All other threads are waiting...</p>
+
+              <p>OperationMutex behaves like a regular mutex.</p>
+            </aside>
           </section>
 
           <section>
@@ -317,6 +561,23 @@ class OperationMutex(object):
               <li>Monitoring timeouts...</li>
               <li>Hypervisor goes down</li>
             </ul>
+
+            <aside class="notes">
+              <p>When we have many storage domain, and storage is overloaded,
+              LVM commands becomes slow.</p>
+
+              <p>Since most of the time only one thread can enter the operation
+              mutex, all monitor threads are waiting for each other.</p>
+
+              <p>Because monitoring threads are waiting, we get monitoring
+              timeouts, and it seems that the hypervisor cannot access some
+              storage domains.</p>
+
+              <p>If a hypervisor cannot access storage for couple of minutes,
+              it becomes non-operational.</p>
+
+              <p>OperationMutex is harmful!</p>
+            </aside>
           </section>
 
         </section>
@@ -325,12 +586,24 @@ class OperationMutex(object):
 
           <section>
             <h2>Improving concurrency</h2>
+
+            <aside class="notes">
+              We need to understand why OperationMutex does not work as
+              expected.
+            </aside>
           </section>
 
           <section>
             <h3>How are Operation Mutex tests passing?</h3>
             <p class="fragment">There are no Operation Mutex tests</p>
-            </ul>
+
+            <aside class="notes">
+              <p>How are OperationMutex tests passing, when the code is
+                misbehaving in production?</p>
+
+              <p>Inspecting the tests is very useful for understanding code and
+              issues; but there are no tests.</p>
+            </aside>
           </section>
 
           <section>
@@ -339,11 +612,24 @@ class OperationMutex(object):
               <br>
               -- Nir Soffer
             </blockquote>
+
+            <aside class="notes">
+              <p>Ok, I probably did not invent this. Anyway, code without tests
+              is likely to be broken; in particular Python code.</p>
+            </aside>
           </section>
 
           <section>
             <h3>Adding tests</h3>
             <p>Let's start with the easy case, allowing multiple threads to perform the same operation</p>
+
+            <aside class="notes">
+              <p>If we could reproduce this issue in a test, it will be much
+              easier to debug and fix this issue.</p>
+
+              <p>Lets start with the easy case, multiple threads running the
+              same operation</p>
+            </aside>
           </section>
 
           <section>
@@ -360,6 +646,22 @@ def test_same_operation():
 
     assert elapsed &lt; 2.0
             </code></pre>
+
+            <aside class="notes">
+              <p>We create an operation mutex that all threads will lock.</p>
+
+              <p>We run the worker function in multiple threads. All threads
+              will acquire the operation mutex for "operation", and sleep for 1
+              second.</p>
+
+              <p>Because all threads are using the same operation, all of them
+              should enter the mutex and run in the same time.</p>
+
+              <p>We assert that we can run 50 concurrent sleeps in less then
+              2.0 seconds. This should complete in about 1 second, we add more
+              time for starting and waiting for the threads, so the test will
+              not be too fragile.</p>
+            </aside>
           </section>
 
           <section>
@@ -381,6 +683,12 @@ def run_threads(func, count):
             t.join()
     return time.time() - start
             </code></pre>
+
+            <aside class="notes">
+              <p>To run and time multiple threads, I added a small helper.</p>
+
+              <p>This helps to fit the tests nicely in the presentation.</p>
+            </aside>
           </section>
 
           <section>
@@ -388,6 +696,12 @@ def run_threads(func, count):
             <ul class="tests">
               <li>opmutex_test.py::test_same_operation <span class="passed">PASSED</span></li>
             </ul>
+
+            <aside class="notes">
+              <p>Green is nice color!</p>
+
+              <p>Lets add the next test, for running multiple operations.</p>
+            </aside>
           </section>
 
           <section>
@@ -396,6 +710,16 @@ def run_threads(func, count):
               <li class="fragment invalidate">Invalidate VG cache</li>
               <li class="fragment reload">Reload VG cache</li>
             </ol>
+
+            <aside class="notes">
+              <p>We want to simulate what the real program is doing during a
+              LVMCache refresh flow. A monitor thread does 2 operations:</p>
+
+              <ol>
+                <li>Invalidate VG cache</li>
+                <li>Reload VG data from storage</li>
+              </ol>
+            </aside>
           </section>
 
           <section>
@@ -404,6 +728,18 @@ def run_threads(func, count):
               <li class="fragment invalidate">Invalidate updates a dict - microseconds</li>
               <li class="fragment reload">Reload goes to storage - seconds</li>
             </ol>
+
+            <aside class="notes">
+              <p>These operation are very different:</p>
+
+              <ol>
+                <li>Invalidate is updating a dict - this takes microseconds</li>
+                <li>Reload goes to storage - this takes seconds (can take many seconds)</li>
+              </ol>
+
+              <p>When we run LVM command, we read data from the command, and
+              wait for it. We will replace this workload with time.sleep()</p>
+            </aside>
           </section>
 
           <section>
@@ -425,6 +761,24 @@ def test_refresh_flow(run):
     assert elapsed &lt; 2.0
     assert cache == ["new"] * count
             </code></pre>
+
+            <aside class="notes">
+              <p>This is very similar to the previous test, but we also added a
+              cache, so we can check that the threads actually run.</p>
+
+              <p>The cache is a list of strings, one item per thread. We start
+              with "old" for the old data.</p>
+
+              <p>The worker first locks the operation mutex for "invalidate"
+              operation, and set the cache to "invalid".</p>
+
+              <p>Then the worker locks the operation mutex for a "reload"
+              operation, and sleeps for 1 second. Finally it changes the cache
+              to "new".</p>
+
+              <p>Because invalidate is very short, we still expect that running
+              50 workers will complete in less then 2 seconds.</p>
+            </aside>
           </section>
 
           <section>
@@ -433,6 +787,15 @@ def test_refresh_flow(run):
               <li>Testing threading issues is tricky</li>
               <li>How can we make it fail consistently?</li>
             </ul>
+
+            <aside class="notes">
+              <p>The test mostly succeeds, but sometimes it fails.</p>
+
+              <p>We like to have consistent failures, otherwise we cannot be
+              sure that we fixed the problem.</p>
+
+              <p>How can we make the test fail consistently?</p>
+            </aside>
           </section>
 
           <section>
@@ -454,6 +817,13 @@ def test_refresh_flow(run):
     elapsed = run_threads(worker, count)
     assert elapsed < 2.0
             </code></pre>
+
+            <aside class="notes">
+              <p>An easy way is to run the test multiple times, this way our
+              build will fail even if the tests fail only once in ten runs.</p>
+
+              <p>We can use pytest test parameterization for this.</p>
+            </aside>
           </section>
 
           <section>
@@ -471,6 +841,14 @@ def test_refresh_flow(run):
               <li>opmutex_test.py::test_refresh_flow[8] <span class="passed">PASSED</span></li>
               <li>opmutex_test.py::test_refresh_flow[9] <span class="failed">FAILED</span></li>
             </ul>
+
+            <aside class="notes">
+              <p>Now the refresh tests fail consistently!</p>
+
+              <p>The actual OperationMutex code include extensive logging, and
+              we configured logging in the test. Let's look at a test failure
+              log.</p>
+            </aside>
           </section>
 
           <section>
@@ -490,6 +868,18 @@ def test_refresh_flow(run):
               <li class="invalidate">worker-09: Operation 'reload' is holding the mutex, waiting...</li>
               <li class="invalidate">worker-10: Operation 'reload' is holding the mutex, waiting...</li>
             </ul>
+
+            <aside class="notes">
+              <p>Look at the first thread - worker-00</p>
+
+              <p>It acquired the operation mutex for "invalidate" operation, and release the mutex.</p>
+
+              <p>And then it acquired the mutex again for "reload" operation!</p>
+
+              <p>All other workers want to lock the operation mutex for
+              "invalidate" operation, so they have to wait for the reload
+              operation to finish.</p>
+            </aside>
           </section>
 
           <section>
@@ -503,6 +893,24 @@ def test_refresh_flow(run):
               <li class="fragment reload">worker-00 releases the GIL during during sleep</li>
               <li class="fragment invalidate">Other workers cannot enter the operation mutex, waiting...</li>
             </ol>
+
+            <aside class="notes">
+              <p>Here is my theory why this happens:</p>
+
+              <ol>
+                <li>Worker-00 acquires the GIL</li>
+                <li>Worker-00 acquires the operation mutex for an "invalidate"
+                  operation</li>
+                <li>Other workders could enter the operation mutex, but
+                  worker-00 is holding the GIL...</li>
+                <li>worker-00 releases the operation mutex</li>
+                <li>worker-00 acquires the operation mutex again for a
+                  reload operation</li>
+                <li>worker-00 releases the GIL during during sleep</li>
+                <li>Other workers wake up, but they cannot enter the operation
+                  mutex, since it is locked for a "reload" operation.</li>
+              </ol>
+            </aside>
           </section>
 
           <section>
@@ -513,21 +921,54 @@ def test_refresh_flow(run):
               <li class="fragment reload">All workers enter the operation mutex for a <strong>reload</strong> operation</li>
               <li class="fragment reload">All workers exit the operation mutex</li>
             </ol>
+
+            <aside class="notes">
+              <p>What is the expected behavior?</p>
+
+              <p>All workers should enter the operation mutex for an invalidate operation.</p>
+
+              <p>Then all workers should enter the operation mutex for a reload operation.</p>
+            </aside>
           </section>
 
           <section>
             <h3>Can we fix it?</h3>
             <p>Need to sleep on it...</p>
+
+            <aside class="notes">
+              <p>How can we  change the way Python schedule threads?</p>
+
+              <p>This seems like a hard problem, needs to sleep on it.</p>
+            </aside>
           </section>
 
           <section>
             <h3>Threads are not polite</h3>
             <p>When you enter a building, you hold the door so the next person can enter</p>
+
+            <aside class="notes">
+              <p>Trying to simulate this in the real world can help.</p>
+
+              <p>When you enter a building, you hold the door so the next
+              person can enter.</p>
+
+              <p>But threads are not polite, they do not wait for each
+              other</p>
+            </aside>
           </section>
 
           <section>
             <h3>How can we make threads polite?</h3>
             <p class="fragment">When entering the operation mutex, take a little nap, letting other threads in</p>
+
+            <aside class="notes">
+              <p>How can we make threas polite?</p>
+
+              <p>When entering the operation mutex, take a little nap, letting
+              other threads in</p>
+
+              <p>This sounds simple to implement...</p>
+            </aside>
           </section>
 
           <section>
@@ -543,6 +984,45 @@ def test_refresh_flow(run):
         finally:
             self._release()
             </code></pre>
+
+            <aside class="notes">
+              <p>Lets add a little sleep after we acquired the operation mutex,
+              just before yielding.</p>
+
+              <p>If there is no other thread, we slowed down the operation by
+              10 milliseconds.</p>
+
+              <p>But the reload operation takes (many) seconds, nobody care
+              about 10 milliseconds.</p>
+
+              <p>10 milliseconds should be enough so another thread enter the
+              operation mutex for an "invalidate" operation</p>
+
+              <p>Eventually, all "invalidate" threads will enter.</p>
+            </aside>
+          </section>
+
+          <section>
+            <h3>Green again!</h3>
+            <ul class="tests">
+              <li>opmutex_test.py::test_same_operation <span class="passed">PASSED</span></li>
+              <li>opmutex_test.py::test_refresh_flow[0] <span class="passed">PASSED</span></li>
+              <li>opmutex_test.py::test_refresh_flow[1] <span class="passed">PASSED</span></li>
+              <li>opmutex_test.py::test_refresh_flow[2] <span class="passed">PASSED</span></li>
+              <li>opmutex_test.py::test_refresh_flow[3] <span class="passed">PASSED</span></li>
+              <li>opmutex_test.py::test_refresh_flow[4] <span class="passed">PASSED</span></li>
+              <li>opmutex_test.py::test_refresh_flow[5] <span class="passed">PASSED</span></li>
+              <li>opmutex_test.py::test_refresh_flow[6] <span class="passed">PASSED</span></li>
+              <li>opmutex_test.py::test_refresh_flow[7] <span class="passed">FAILED</span></li>
+              <li>opmutex_test.py::test_refresh_flow[8] <span class="passed">PASSED</span></li>
+              <li>opmutex_test.py::test_refresh_flow[9] <span class="passed">PASSED</span></li>
+            </ul>
+
+            <aside class="notes">
+              <p>All green again.</p>
+
+              <p>Lets look at the test logs.</p>
+            </aside>
           </section>
 
           <section>
@@ -562,10 +1042,19 @@ def test_refresh_flow(run):
               <li class="invalidate">worker-02: Operation 'invalidate' exited the mutex</li>
               <li>...</li>
             </ul>
+
+            <aside class="notes">
+              <p>We can see that all "invalidate" workers enter the operation
+              mutex, and workers trying to "reload" are waiting.</p>
+            </aside>
           </section>
 
           <section>
             <h3>Fix available in ovirt-3.6</h3>
+
+            <aside class="notes">
+              <p>This fix was tested and shipped in ovirt-3.6</p>
+            </aside>
           </section>
 
         </section>
@@ -574,11 +1063,21 @@ def test_refresh_flow(run):
 
           <section>
             <h2>Are we done?</h2>
+
+            <aside class="notes">
+              <p>We are not done yet</p>
+            </aside>
           </section>
 
           <section>
             <h3>Why do we need the operation mutex?</h3>
             <p>Need to sleep on it little bit more...</p>
+
+            <aside class="notes">
+              <p>Did we fix the real problem?</p>
+
+              <p>Why do we need the OperationMutex?</p>
+            </aside>
           </section>
 
           <section>
@@ -589,11 +1088,32 @@ def test_refresh_flow(run):
               <li class="fragment">The real problem is monitor thread isolation</li>
               <li class="fragment">Monitor threads should not refresh LVM cache</li>
             </ul>
+
+            <aside class="notes">
+              <p>We don't need the operation mutex.</p>
+
+              <ol>
+                <li>No need to separate invalidate and reload operations</li>
+                <li>Multiple threads modifying the cache is not thread safe, we
+                  must lock the cache when modifying it, but we don't have any
+                  reason to lock the cache when running LVM command.</li>
+                <li>The real problem is monitor thread isolation</li>
+                <li>Monitor threads should not refresh LVM cache, they should
+                  only monitor storage</li>
+              </ol>
+            </aside>
           </section>
 
           <section>
             <h3>Operation Mutex was removed in ovirt-4.0</h3>
             <p>More on this in my PyCon Israel 2018 talk?</p>
+
+            <aside class="notes">
+              <p>In ovirt 4.0 monitoring subsystem was redesigned, and
+              operation mutex was removed.</p>
+
+              <p>Maybe I will talk about this in PyCon Israel 2018.</p>
+            </aside>
           </section>
 
           <section>
@@ -602,6 +1122,10 @@ def test_refresh_flow(run):
               <br>
               -- <a href="http://quotes.cat-v.org/programming">http://quotes.cat-v.org/programming</a>
             </blockquote>
+
+            <aside class="notes">
+              <p>Removing it is the best thing we can do.</p>
+            </aside>
           </section>
 
         </section>
@@ -620,6 +1144,17 @@ def test_refresh_flow(run):
             We are hiring<br>
             <a href="https://jobs.redhat.com">https://jobs.redhat.com</a>
           </p>
+
+          <aside class="notes">
+            <p>This talk is available on github, you can clone and play with
+            the code and the tests.</p>
+
+            <p>oVirt is free software, available on github. We need your
+            help!</p>
+
+            <p>I want to thank Red Hat for paying me to write free software,
+            and for preparing this talk! We are always hiring.</p>
+          </aside>
         </section>
 
         <section>
