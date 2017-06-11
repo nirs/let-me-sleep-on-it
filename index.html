@@ -710,8 +710,8 @@ def run_threads(func, count):
           <section>
             <h3>Refresh LVM cache flow</h3>
             <ol>
-              <li class="fragment invalidate">Invalidate VG cache</li>
-              <li class="fragment reload">Reload VG cache</li>
+              <li class="fragment invalidate">Invalidate cache</li>
+              <li class="fragment reload">Reload cache</li>
             </ol>
 
             <aside class="notes">
@@ -719,8 +719,8 @@ def run_threads(func, count):
               LVMCache refresh flow. A monitor thread does 2 operations:</p>
 
               <ol>
-                <li>Invalidate VG cache</li>
-                <li>Reload VG data from storage</li>
+                <li>Invalidate cache</li>
+                <li>Reload data from storage</li>
               </ol>
             </aside>
           </section>
