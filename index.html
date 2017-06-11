@@ -95,7 +95,7 @@ Father of two
             <aside class="notes">
               Python global interpreter lock will let only one thread run
               Python code at a time. Creating more threads will make your
-              program slower, and use more cpu time!
+              program slower, and use more cpu and memory!
             </aside>
           </section>
 
@@ -109,11 +109,13 @@ Py_END_ALLOW_THREADS
             <p class="fragment">Python releases the GIL when possible</p>
 
             <aside class="notes">
-              This piece of C code was taken from the Python interpreter. When
-              Python is invoking blocking system calls or other C code that
-              does not need to access Python internals, it releases the GIL.
-              While this thread is block on read(), other threads can run
-              Python code, or wait on other calls.
+              <p>This piece of C code was taken from the Python interpreter.
+              When Python is invoking blocking system calls or other C code
+              that does not need to access Python internals, it releases the
+              GIL.</p>
+
+              <p>While this thread is blocked on read(), other threads can run
+              Python code, or wait on other calls.</p>
             </aside>
           </section>
 
@@ -122,9 +124,11 @@ Py_END_ALLOW_THREADS
             <p>You can do I/O or wait for other programs concurrently</p>
 
             <aside class="notes">
-              In the real world, any complex application is spending most of
-              the time waiting for I/O or for other programs. Threads are very
-              useful to run concurrent flows and are surprisingly efficient.
+              <p>In the real world, any complex application is spending most of
+              the time waiting for I/O or for other programs.</p>
+
+              <p>Threads are very useful to run concurrent flows and are
+              surprisingly efficient.</p>
             </aside>
           </section>
 
@@ -133,10 +137,12 @@ Py_END_ALLOW_THREADS
             <p>When using threads, you can write simple and clear code, as if you are the only one running</p>
 
             <aside class="notes">
-              When using threads, you can write simple and clear code. This
+              <p>When using threads, you can write simple and clear code. This
               model is very easy to program, as if your code is the only code
-              running in the entire application. The trouble starts when you
-              have to access shared resources, more on that later...
+              running in the entire application.</p>
+
+              <p>The trouble starts when you have to access shared resources,
+              more on that later...</p>
             </aside>
           </section>
 
@@ -172,11 +178,9 @@ Py_END_ALLOW_THREADS
             </ul>
 
             <aside class="notes">
-              <p>Virtual machines are not very useful without storage.</p>
-
-              <p>Vdsm provides storage to virtual machines</p>
-
-              <p>Typically storage is shared.</p>
+              <p>Virtual machines are not very useful without storage; Vdsm
+              provides storage to virtual machines.  Typically storage is
+              shared.</p>
 
               <p>Why shared storage? When you separate storage from your
               compute nodes, you can do magical stuff like move virtual
@@ -204,9 +208,8 @@ D+   dd if=/dev/zero of=mnt/test bs=8M count=1280 oflag=direct
 
             <aside class="notes">
               <p>But shared storage can be also dead slow; In this example the
-              dd program is in D state, blocked on unresponsive storage.</p>
-
-              <p>In this state you cannot even kill it.</p>
+              dd program is in D state, blocked on unresponsive storage. In
+              this state you cannot even kill it.</p>
             </aside>
           </section>
 
