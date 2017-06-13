@@ -179,12 +179,13 @@ Py_END_ALLOW_THREADS
 
             <aside class="notes">
               <p>Virtual machines are not very useful without storage; Vdsm
-              provides storage to virtual machines.  Typically storage is
-              shared.</p>
+              provides storage to virtual machines. Virtual machines need other
+              stuff, but I'm working on storage, so we will ignore that.</p>
 
-              <p>Why shared storage? When you separate storage from your
-              compute nodes, you can do magical stuff like move virtual
-              machines between compute nodes while they are running.</p>
+              <p>Typically storage is shared; why do we use shared storage?
+              When you separate storage from your compute nodes, you can do
+              magical stuff like move virtual machines between compute nodes
+              while they are running.</p>
             </aside>
           </section>
 
@@ -221,8 +222,8 @@ D+   dd if=/dev/zero of=mnt/test bs=8M count=1280 oflag=direct
             </ul>
 
             <aside class="notes">
-              <p>To allow the oVirt system to be manage virtual machines in
-              the data center, Vdsm is monitoring storage health.</p>
+              <p>To allow the oVirt system to manage virtual machines in the
+              data center, Vdsm is monitoring storage health.</p>
 
               <p>oVirt is separating storage to storage domains - a piece of
               storage used for particular purpose.</p>
@@ -240,7 +241,7 @@ D+   dd if=/dev/zero of=mnt/test bs=8M count=1280 oflag=direct
               <p>Why do we need separate thread for each storage domain?</p>
 
               <p>If one storage domain becomes slow or even unresponsive, we
-              don't want to that unrelated storage domain will be affected.</p>
+              don't want that unrelated storage domain will be affected.</p>
             </aside>
           </section>
 
@@ -278,7 +279,8 @@ D+   dd if=/dev/zero of=mnt/test bs=8M count=1280 oflag=direct
             </blockquote>
 
             <aside class="notes">
-              <p>Vdsm has to invalidate the LVM metadata cache.</p>
+              <p>Cache invalidation is tricky; Vdsm has to invalidate the LVM
+              cache.</p>
 
               <p>How do you invalidate the cache of 50 storage domains?.</p>
             </aside>
@@ -361,9 +363,9 @@ class LVMCache(object):
             <aside class="notes">
               <p>
               If LVM cache was using a simple mutex, only one thread could
-              invalidate or reload the cache, this would be too slow with many
-              storage domains. To improve concurrency, we use a special lock
-              implementing these rules:
+              invalidate or reload the cache at a time, and this would be too
+              slow with many storage domains. To improve concurrency, we use a
+              special lock implementing these rules:
               </p>
               <ol>
                 <li>Multiple threads can invalidate the cache at the same time</li>
@@ -528,7 +530,7 @@ class OperationMutex(object):
 
             <aside class="notes">
               <p>This is a fragment from Vdsm log (simplifed and colored). The
-              logs for invalidate operations are in blue, and reload operation
+              logs for invalidate operations are in blue, and reload operations
               are in green.</p>
 
               <p>Do you see any problem in this log?</p>
@@ -543,8 +545,7 @@ class OperationMutex(object):
             </ul>
 
             <aside class="notes">
-              <p>I have seen hundreds of megabytes of logs, and the picture is
-              clear.</p>
+              <p>I have seen too many logs, and the picture is clear.</p>
 
               <p>Most of the time, only one thread is inside the operation mutex.</p>
 
@@ -825,7 +826,7 @@ def test_refresh_flow(run):
               <p>An easy way is to run the test multiple times, this way our
               build will fail even if the tests fail only once in ten runs.</p>
 
-              <p>We can use pytest test parameterization for this.</p>
+              <p>We can use <pre>pytest.mark.parametrize</pre> for this.</p>
             </aside>
           </section>
 
@@ -848,7 +849,7 @@ def test_refresh_flow(run):
             <aside class="notes">
               <p>Now the refresh tests fail consistently!</p>
 
-              <p>The actual OperationMutex code include extensive logging, and
+              <p>The actual OperationMutex code includes extensive logging, and
               we configured logging in the test. Let's look at a test failure
               log.</p>
             </aside>
